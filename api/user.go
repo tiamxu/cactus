@@ -2,11 +2,8 @@ package api
 
 import (
 	"fmt"
-	"naive-admin-go/db"
-	"naive-admin-go/model"
 	"strconv"
 
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/models/response"
 	"github.com/tiamxu/cactus/service"
 
@@ -21,18 +18,6 @@ func NewUserHandler() *UserHandler {
 	return &UserHandler{
 		userService: &service.UserService{},
 	}
-}
-func (h *UserHandler) Detail(c *gin.Context) {
-	var data = &inout.UserDetailRes{}
-	var uid, _ = c.Get("uid")
-	db.Dao.Model(model.User{}).Where("id=?", uid).Find(&data)
-	db.Dao.Model(model.Profile{}).Where("userId=?", uid).Find(&data.Profile)
-	urolIdList := db.Dao.Model(model.UserRolesRole{}).Where("userId=?", uid).Select("roleId")
-	db.Dao.Model(model.Role{}).Where("id IN (?)", urolIdList).Find(&data.Roles)
-	if len(data.Roles) > 0 {
-		data.CurrentRole = data.Roles[0]
-	}
-	Resp.Succ(c, data)
 }
 
 // CreateUser 创建用户

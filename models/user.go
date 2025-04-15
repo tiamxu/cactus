@@ -4,25 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
-//	type User struct {
-//		ID        uint       `db:"id" json:"id"`
-//		Username  string     `db:"username" json:"username"`
-//		Password  string     `db:"password" json:"-"`
-//		Email     string     `db:"email" json:""`
-//		Status    int        `db:"status" json:"status"`
-//		CreatedAt time.Time  `db:"created_at" json:"created_at"`
-//		UpdatedAt time.Time  `db:"updated_at" json:"updated_at"`
-//		DeletedAt *time.Time `db:"deleted_at" json:"-"`
-//	}
 type User struct {
-	ID         int       `json:"id"`
-	Username   string    `json:"username"`
-	Password   string    `json:"password"`
-	Enable     bool      `json:"enable"`
-	CreateTime time.Time `json:"createTime" `
-	UpdateTime time.Time `json:"updateTime"`
+	ID         int       `db:"id" json:"id"`
+	Username   string    `db:"username" json:"username"`
+	Password   string    `db:"password" json:"password"`
+	Enable     bool      `db:"enable" json:"enable"`
+	CreateTime time.Time `db:"createTime" json:"createTime"`
+	UpdateTime time.Time `db:"updateTime" json:"updateTime"`
 }
 
 func (u *User) TableName() string {
@@ -46,22 +38,37 @@ func GetUserByUsername(username string) (*User, error) {
 	return &user, err
 }
 
-// func GetUserByUsername(username string) (*User, error) {
-// 	query := `
-// 		SELECT
-// 			id, username, password, email, status,
-// 			created_at, updated_at, deleted_at
-// 		FROM users
-// 		WHERE username = ? AND deleted_at IS NULL
-// 		LIMIT 1`
+// GetByID 根据ID获取用户
+func GetUserByID(id int) (*User, error) {
+	query := `
+        SELECT id, username, enable, createTime, updateTime 
+        FROM user 
+        WHERE id = ?`
 
-// 	var user User
-// 	err := DB.Get(&user, query, username)
-// 	if err == sql.ErrNoRows {
-// 		return nil, nil
-// 	}
-// 	return &user, err
-// }
+	user := &User{}
+	err := DB.Get(user, query, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func GetUsersByIDs(ids []int) ([]User, error) {
+	query := `SELECT * FROM user WHERE id IN (?)`
+
+	query, args, err := sqlx.In(query, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []User
+	err = DB.Select(&users, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
 
 func CreateUser(user *User) error {
 	query := `
@@ -117,28 +124,6 @@ func Create(user *User) error {
 	id, _ := result.LastInsertId()
 	user.ID = int(id)
 	return nil
-}
-
-// GetByID 根据ID获取用户
-func GetUserByID(id uint) (*User, error) {
-	query := `
-        SELECT id, username, enable, createTime, updateTime 
-        FROM user 
-        WHERE id = ?`
-
-	user := &User{}
-	err := DB.QueryRow(query, id).Scan(
-		&user.ID,
-		&user.Username,
-		&user.Enable,
-		&user.CreateTime,
-		&user.UpdateTime,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
 }
 
 // Update 更新用户信息

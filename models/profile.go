@@ -1,15 +1,15 @@
 package models
 
-import "database/sql"
+import "github.com/jmoiron/sqlx"
 
 type Profile struct {
-	ID       int    `json:"id"`
-	Gender   int    `json:"gender"`
-	Avatar   string `json:"avatar"`
-	Address  string `json:"address"`
-	Email    string `json:"email"`
-	UserId   int    `json:"userId"`
-	NickName string `json:"nickName"`
+	ID       int    `db:"id" json:"id"`
+	Gender   int    `db:"gender" json:"gender"`
+	Avatar   string `db:"avatar" json:"avatar"`
+	Address  string `db:"address" json:"address"`
+	Email    string `db:"email" json:"email"`
+	UserId   int    `db:"userId" json:"userId"`
+	NickName string `db:"nickName" json:"nickName"`
 }
 
 func (Profile) TableName() string {
@@ -17,27 +17,28 @@ func (Profile) TableName() string {
 }
 
 func GetProfileByUserID(userId int) (*Profile, error) {
-	query := `
-        SELECT id, gender,avatar,address,email, userId, nickName 
-        FROM profile 
-        WHERE userId = ?`
-
-	p := &Profile{}
-	err := DB.QueryRow(query, userId).Scan(
-		&p.ID,
-		&p.Gender,
-		&p.Avatar,
-		&p.Address,
-		&p.Email,
-		&p.UserId,
-		&p.NickName,
-	)
-
+	query := `SELECT * FROM profile WHERE userId = ?`
+	profile := &Profile{}
+	err := DB.Get(profile, query, userId)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // 没有找到记录不算错误
-		}
 		return nil, err
 	}
-	return p, nil
+	return profile, nil
+}
+
+func GetProfilesByUserIDs(userIds []int) ([]Profile, error) {
+	query := `SELECT * FROM profile WHERE userId IN (?)`
+
+	query, args, err := sqlx.In(query, userIds)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles []Profile
+	err = DB.Select(&profiles, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return profiles, nil
 }

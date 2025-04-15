@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/models"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -34,6 +36,53 @@ type UserService struct {
 func NewUserService() *UserService {
 	return &UserService{}
 }
+func (s *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
+	var res inout.UserDetailRes
+
+	// 查询用户信息
+	user, err := models.GetUserByID(userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	res.User = *user
+
+	// 查询用户详情
+	profile, err := models.GetProfileByUserID(userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			res.Profile = &models.Profile{} // 如果没有找到 profile，可以设置为空结构体
+		} else {
+			return nil, err
+		}
+	}
+	res.Profile = profile
+
+	// 查询用户角色 ID 列表
+	roleIDs, err := models.GetRolesByUserID(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	// 查询角色信息
+	if len(roleIDs) > 0 {
+		roles, err := models.GetRolesByUserIDs(roleIDs)
+		if err != nil {
+			return nil, err
+		}
+		res.Roles = roles
+	}
+
+	// 设置当前角色
+	if len(res.Roles) > 0 {
+		res.CurrentRole = res.Roles[0]
+	}
+
+	return &res, nil
+}
+
 func (u *UserService) ListUsers() (user []models.User, err error) {
 	user, err = models.ListUsers()
 	if err != nil {

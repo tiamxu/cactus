@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	"naive-admin-go/api"
-
+	"github.com/tiamxu/cactus/api"
 	"github.com/tiamxu/cactus/utils"
 
 	"github.com/gin-gonic/gin"

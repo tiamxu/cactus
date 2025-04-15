@@ -1,9 +1,10 @@
 package response
 
 import (
-	"naive-admin-go/model"
 	"net/http"
 	"time"
+
+	model "github.com/tiamxu/cactus/models"
 
 	"github.com/gin-gonic/gin"
 )
