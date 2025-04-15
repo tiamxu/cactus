@@ -1,0 +1,17 @@
+env: dev
+log_level: debug
+http_srv:
+  address: :8800
+  keep_alive: true
+  read_timeout: 30s
+  write_timeout: 30s
+db:
+  driver: "mysql"
+  database: "cmdb"
+  username: "root"
+  password: "JLZqwDlJi5rY8WM"
+  host: "120.24.61.231"
+  port: 13306
+  max_idle_conns: 5
+  max_open_conns: 10
+  conn_max_lifetime: 3600
