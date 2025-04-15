@@ -12,15 +12,30 @@ type Role struct {
 func (Role) TableName() string {
 	return "role"
 }
+func GetRolesIdByUserID(userId int) ([]int, error) {
+	query := `
+		SELECT r.roleId 
+		FROM role r
+		JOIN user_roles_role urr ON r.id = urr.roleId
+		WHERE urr.userId = ?`
 
-func GetRolesByUserID(userId int) ([]Role, error) {
+	var roleIds []int
+	err := DB.Select(&roleIds, query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return roleIds, nil
+}
+
+func GetRolesByUserID(userId int) ([]*Role, error) {
 	query := `
 		SELECT r.* 
 		FROM role r
 		JOIN user_roles_role urr ON r.id = urr.roleId
 		WHERE urr.userId = ?`
 
-	var roles []Role
+	var roles []*Role
 	err := DB.Select(&roles, query, userId)
 	if err != nil {
 		return nil, err
