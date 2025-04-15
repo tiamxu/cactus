@@ -3,10 +3,10 @@ package models
 import "strings"
 
 type Role struct {
-	ID     int    `json:"id"`
-	Code   string `json:"code"`
-	Name   string `json:"name"`
-	Enable bool   `json:"enable"`
+	ID     int    `db:"id" json:"id"`
+	Code   string `db:"code" json:"code"`
+	Name   string `db:"name" json:"name"`
+	Enable bool   `db:"enable" json:"enable"`
 }
 
 func (Role) TableName() string {
