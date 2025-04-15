@@ -59,14 +59,17 @@ func (s *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
 	res.Profile = profile
 
 	// 查询用户角色 ID 列表
-	roleIDs, err := models.GetRolesIdByUserID(userId)
+	// roleIDs, err := models.GetRolesIdByUserID(userId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	roleIDs, err := models.GetUserRoleIDs(userId)
 	if err != nil {
 		return nil, err
 	}
-
 	// 查询角色信息
 	if len(roleIDs) > 0 {
-		roles, err := models.GetRolesByUserID(userId)
+		roles, err := models.GetRolesByID(roleIDs)
 		if err != nil {
 			return nil, err
 		}

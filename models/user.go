@@ -38,10 +38,10 @@ func GetUserByUsername(username string) (*User, error) {
 	return &user, err
 }
 
-// GetByID 根据ID获取用户
+// 查询用户信息
 func GetUserByID(id int) (*User, error) {
 	query := `
-        SELECT id, username, enable, createTime, updateTime 
+        SELECT id, username, password, enable, createTime, updateTime 
         FROM user 
         WHERE id = ?`
 

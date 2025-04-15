@@ -1,13 +1,11 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/tiamxu/cactus/inout"
-	"github.com/tiamxu/cactus/models"
 	"github.com/tiamxu/cactus/service"
 	"github.com/tiamxu/cactus/utils"
 )
@@ -48,20 +46,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, token, err := h.authService.Authenticate(params.Username, params.Password)
-	fmt.Println("user:", user)
+	user, _, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
-		fmt.Printf("auth failed : %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication failed"})
 		return
 	}
-	// Resp.Succ(c, inout.LoginRes{
-	// 	AccessToken: utils.GenerateToken(user.ID),
-	// })
-	c.JSON(http.StatusOK, gin.H{
-		"token": token,
-		"user":  userResponse(user),
+	Resp.Succ(c, inout.LoginRes{
+		AccessToken: utils.GenerateToken(user.ID),
 	})
+
 }
 
 func (h *AuthHandler) password(c *gin.Context) {
@@ -76,10 +69,4 @@ func (h *AuthHandler) password(c *gin.Context) {
 }
 func (h *AuthHandler) Logout(c *gin.Context) {
 	Resp.Succ(c, true)
-}
-func userResponse(u *models.User) gin.H {
-	return gin.H{
-		"id":       u.ID,
-		"username": u.Username,
-	}
 }

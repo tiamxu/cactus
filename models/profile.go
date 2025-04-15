@@ -16,8 +16,9 @@ func (Profile) TableName() string {
 	return "profile"
 }
 
+// 查询用户详情
 func GetProfileByUserID(userId int) (*Profile, error) {
-	query := `SELECT * FROM profile WHERE userId = ?`
+	query := `SELECT id, gender, avatar, address, email, userId, nickName FROM profile WHERE userId = ?`
 	profile := &Profile{}
 	err := DB.Get(profile, query, userId)
 	if err != nil {

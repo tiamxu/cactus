@@ -12,9 +12,22 @@ type Role struct {
 func (Role) TableName() string {
 	return "role"
 }
+
+// 查询角色信息
+func GetRolesByID(roleIDs []int) ([]*Role, error) {
+	query, args, err := sqlx.In(`SELECT id, code, name, enable FROM role WHERE id IN (?)`, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	query = DB.Rebind(query) // 重新绑定查询语句
+	var roles []*Role
+	err = DB.Select(&roles, query, args...)
+	return roles, err
+}
+
 func GetRolesIdByUserID(userId int) ([]int, error) {
 	query := `
-		SELECT r.roleId 
+		SELECT r.id 
 		FROM role r
 		JOIN user_roles_role urr ON r.id = urr.roleId
 		WHERE urr.userId = ?`

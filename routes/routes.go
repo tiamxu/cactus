@@ -13,7 +13,8 @@ func InitRoutes(r *gin.Engine) {
 	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte("captch"))))
 
 	authHandler := api.NewAuthHandler()
-	// userHandler := api.NewUserHandler()
+	userHandler := api.NewUserHandler()
+	permissionHandler := api.NewPermissionsHandler()
 
 	r.POST("/auth/login", authHandler.Login)
 	r.GET("/auth/captcha", authHandler.Captcha)
@@ -28,7 +29,7 @@ func InitRoutes(r *gin.Engine) {
 	// r.PATCH("/user/password/reset/:id", userHandlerUpdate)
 	// r.PATCH("/user/:id", userHandler.Update)
 	// r.PATCH("/user/profile/:id", api.User.Profile)
-	// r.GET("/user/detail", api.User.Detail)
+	r.GET("/user/detail", userHandler.Detail)
 
 	// r.GET("/role", api.Role.List)
 	// r.POST("/role", api.Role.Add)
@@ -37,7 +38,7 @@ func InitRoutes(r *gin.Engine) {
 	// r.PATCH("/role/users/add/:id", api.Role.AddUser)
 	// r.PATCH("/role/users/remove/:id", api.Role.RemoveUser)
 	// r.GET("/role/page", api.Role.ListPage)
-	// r.GET("/role/permissions/tree", api.Role.PermissionsTree)
+	r.GET("/role/permissions/tree", permissionHandler.PermissionsTree)
 
 	// r.POST("/permission", api.Permissions.Add)
 	// r.PATCH("/permission/:id", api.Permissions.PatchPermission)
