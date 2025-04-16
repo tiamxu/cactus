@@ -43,3 +43,15 @@ func GetProfilesByUserIDs(userIds []int) ([]Profile, error) {
 
 	return profiles, nil
 }
+
+func GetProfilesByUserIds(userIds []int) ([]Profile, error) {
+	query := `
+		SELECT * FROM profiles
+		WHERE userId IN (?)
+	`
+	query, args, _ := sqlx.In(query, userIds)
+	query = DB.Rebind(query)
+	var profiles []Profile
+	err := DB.Select(&profiles, query, args...)
+	return profiles, err
+}

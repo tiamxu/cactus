@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tiamxu/cactus/models/response"
 	"github.com/tiamxu/cactus/service"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +37,33 @@ func (a *UserHandler) Detail(c *gin.Context) {
 	}
 	Resp.Succ(c, userDetail)
 }
+func (a *UserHandler) List(c *gin.Context) {
+	gender := c.DefaultQuery("gender", "")
+	enable := c.DefaultQuery("enable", "")
+	username := c.DefaultQuery("username", "")
+	pageNo := c.DefaultQuery("pageNo", "1")
+	pageSize := c.DefaultQuery("pageSize", "10")
+
+	pageNoInt, _ := strconv.Atoi(pageNo)
+	pageSizeInt, _ := strconv.Atoi(pageSize)
+
+	userListRes, err := a.userService.GetUserList(gender, enable, username, pageNoInt, pageSizeInt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	Resp.Succ(c, userListRes)
+
+}
+func (a *UserHandler) Profile(c *gin.Context) {
+}
+func (a *UserHandler) Update(c *gin.Context) {
+}
+func (a *UserHandler) Add(c *gin.Context) {
+}
+func (a *UserHandler) Delete(c *gin.Context) {
+}
 
 // CreateUser 创建用户
 // func (h *UserHandler) CreateUser(c *gin.Context) {
@@ -56,22 +82,22 @@ func (a *UserHandler) Detail(c *gin.Context) {
 // }
 
 // GetUser 获取用户详情
-func (h *UserHandler) GetUser(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		response.Error(c, 400, "无效的用户ID")
-		return
-	}
+// func (h *UserHandler) GetUser(c *gin.Context) {
+// 	idStr := c.Param("id")
+// 	id, err := strconv.ParseUint(idStr, 10, 32)
+// 	if err != nil {
+// 		response.Error(c, 400, "无效的用户ID")
+// 		return
+// 	}
 
-	user, err := h.userService.GetByID(uint(id))
-	if err != nil {
-		response.Error(c, 404, "用户不存在")
-		return
-	}
+// 	user, err := h.userService.GetByID(uint(id))
+// 	if err != nil {
+// 		response.Error(c, 404, "用户不存在")
+// 		return
+// 	}
 
-	response.Success(c, user)
-}
+// 	response.Success(c, user)
+// }
 
 // ListUsers 用户列表
 // func (h *UserHandler) ListUsers(c *gin.Context) {
@@ -115,8 +141,8 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 // 	response.Success(c, user)
 // }
 
-// DeleteUser 删除用户
-// func (h *UserHandler) DeleteUser(c *gin.Context) {
+// Delete删除用户
+// func (h *UserHandler) Delete(c *gin.Context) {
 // 	idStr := c.Param("id")
 // 	id, err := strconv.ParseUint(idStr, 10, 32)
 // 	if err != nil {

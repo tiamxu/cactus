@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/service"
 )
 
@@ -40,4 +41,33 @@ func (a *PermissionsHandler) PermissionsTree(c *gin.Context) {
 
 	// 返回权限树
 	Resp.Succ(c, permissions)
+}
+
+func (p *PermissionsHandler) List(c *gin.Context) {
+	var data = &inout.RoleListRes{}
+
+	Resp.Succ(c, data)
+}
+
+func (p *PermissionsHandler) ListPage(c *gin.Context) {
+	var data = &inout.RoleListRes{}
+
+	Resp.Succ(c, data)
+}
+func (p *PermissionsHandler) Add(c *gin.Context) {
+	var data = &inout.RoleListRes{}
+
+	Resp.Succ(c, data)
+}
+
+func (p *PermissionsHandler) Delete(c *gin.Context) {
+	var data = &inout.RoleListRes{}
+
+	Resp.Succ(c, data)
+}
+
+func (p *PermissionsHandler) PatchPermission(c *gin.Context) {
+	var data = &inout.RoleListRes{}
+
+	Resp.Succ(c, data)
 }

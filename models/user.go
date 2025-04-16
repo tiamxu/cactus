@@ -163,20 +163,7 @@ func List(page, pageSize int) ([]*User, error) {
 	defer rows.Close()
 
 	var users []*User
-	for rows.Next() {
-		user := &User{}
-		err := rows.Scan(
-			&user.ID,
-			&user.Username,
-			&user.Enable,
-			&user.CreateTime,
-			&user.UpdateTime,
-		)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
-	}
+
 	return users, nil
 }
 
@@ -186,4 +173,15 @@ func ExistsByUsername(username string) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM user WHERE username = ?)`
 	err := DB.QueryRow(query, username).Scan(&exists)
 	return exists, err
+}
+
+func GetUserList(enable string, limit, offset int) ([]User, error) {
+	query := `
+		SELECT * FROM users
+		WHERE enable = ? OR ? = ''
+		LIMIT ? OFFSET ?
+	`
+	var users []User
+	err := DB.Select(&users, query, enable, enable, limit, offset)
+	return users, err
 }

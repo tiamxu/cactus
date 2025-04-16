@@ -41,7 +41,7 @@ func GetRolesIdByUserID(userId int) ([]int, error) {
 	return roleIds, nil
 }
 
-func GetRolesByUserID(userId int) ([]*Role, error) {
+func GetRolesByUserId(userId int) ([]*Role, error) {
 	query := `
 		SELECT r.* 
 		FROM role r
@@ -57,7 +57,7 @@ func GetRolesByUserID(userId int) ([]*Role, error) {
 	return roles, nil
 }
 
-func GetRolesByUserIDs(userIds []int) (map[int][]Role, error) {
+func GetRolesByUserIds(userIds []int) (map[int][]*Role, error) {
 	if len(userIds) == 0 {
 		return nil, nil
 	}
@@ -86,9 +86,9 @@ func GetRolesByUserIDs(userIds []int) (map[int][]Role, error) {
 	}
 
 	// 构建用户ID到角色列表的映射
-	result := make(map[int][]Role)
+	result := make(map[int][]*Role)
 	for _, ur := range userRoles {
-		result[ur.UserID] = append(result[ur.UserID], ur.Role)
+		result[ur.UserID] = append(result[ur.UserID], &ur.Role)
 	}
 
 	return result, nil

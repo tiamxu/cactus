@@ -34,7 +34,7 @@ type UserService struct {
 func NewUserService() *UserService {
 	return &UserService{}
 }
-func (s *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
+func (u *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
 	var res inout.UserDetailRes
 
 	// 查询用户信息
@@ -83,6 +83,189 @@ func (s *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
 
 	return &res, nil
 }
+
+func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageSize int) (*inout.UserListRes, error) {
+	var data = inout.UserListRes{
+		PageData: make([]inout.UserListItem, 0),
+	}
+	offset := (pageNo - 1) * pageSize
+	users, err := models.GetUserList(enable, pageSize, offset)
+	if err != nil {
+		return nil, errors.New("查询用户列表失败")
+	}
+
+	// 提取用户 ID 列表
+	userIds := make([]int, len(users))
+	for i, user := range users {
+		userIds[i] = user.ID
+	}
+
+	// 查询用户资料
+	profiles, err := models.GetProfilesByUserIds(userIds)
+	if err != nil {
+		return nil, errors.New("查询用户资料失败")
+	}
+
+	// 查询用户角色
+	roleMap, err := models.GetRolesByUserIds(userIds)
+	if err != nil {
+		return nil, errors.New("查询用户角色失败")
+
+	}
+
+	// 组合数据
+	for _, user := range users {
+		profile := findProfileByUserId(profiles, user.ID)
+		roles := roleMap[user.ID]
+		data.PageData = append(data.PageData, inout.UserListItem{
+			ID:         user.ID,
+			Username:   user.Username,
+			Enable:     user.Enable,
+			CreateTime: user.CreateTime,
+			UpdateTime: user.UpdateTime,
+			Gender:     profile.Gender,
+			Avatar:     profile.Avatar,
+			Address:    profile.Address,
+			Email:      profile.Email,
+			Roles:      roles,
+		})
+
+	}
+	return &data, nil
+}
+
+// func (s *UserService) UpdateProfile(params *inout.PatchProfileUserReq) error {
+// 	_, err := s.db.Exec("UPDATE profile SET gender = ?, address = ?, email = ?, nickName = ? WHERE id = ?", params.Gender, params.Address, params.Email, params.NickName, params.Id)
+// 	if err != nil {
+// 		return utils.NewError("Failed to update profile", err)
+// 	}
+// 	return nil
+// }
+
+// func (s *UserService) UpdateUser(params *inout.PatchUserReq) error {
+// 	tx, err := s.db.Beginx()
+// 	if err != nil {
+// 		return utils.NewError("Failed to begin transaction", err)
+// 	}
+// 	defer tx.Rollback()
+
+// 	if params.Password != nil {
+// 		hashedPassword := fmt.Sprintf("%x", md5.Sum([]byte(*params.Password)))
+// 		_, err = tx.Exec("UPDATE user SET password = ? WHERE id = ?", hashedPassword, params.Id)
+// 		if err != nil {
+// 			return utils.NewError("Failed to update password", err)
+// 		}
+// 	}
+
+// 	if params.Enable != nil {
+// 		_, err = tx.Exec("UPDATE user SET enable = ? WHERE id = ?", *params.Enable, params.Id)
+// 		if err != nil {
+// 			return utils.NewError("Failed to update enable", err)
+// 		}
+// 	}
+
+// 	if params.Username != nil {
+// 		_, err = tx.Exec("UPDATE user SET username = ? WHERE id = ?", *params.Username, params.Id)
+// 		if err != nil {
+// 			return utils.NewError("Failed to update username", err)
+// 		}
+// 		_, err = tx.Exec("UPDATE profile SET nickName = ? WHERE userId = ?", *params.Username, params.Id)
+// 		if err != nil {
+// 			return utils.NewError("Failed to update nickname", err)
+// 		}
+// 	}
+
+// 	if params.RoleIds != nil {
+// 		_, err = tx.Exec("DELETE FROM user_roles_role WHERE userId = ?", params.Id)
+// 		if err != nil {
+// 			return utils.NewError("Failed to delete user roles", err)
+// 		}
+// 		for _, roleId := range *params.RoleIds {
+// 			_, err = tx.Exec("INSERT INTO user_roles_role (userId, roleId) VALUES (?, ?)", params.Id, roleId)
+// 			if err != nil {
+// 				return utils.NewError("Failed to insert user role", err)
+// 			}
+// 		}
+// 	}
+
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return utils.NewError("Failed to commit transaction", err)
+// 	}
+// 	return nil
+// }
+
+// func (s *UserService) AddUser(params *inout.AddUserReq) error {
+// 	tx, err := s.db.Beginx()
+// 	if err != nil {
+// 		return utils.NewError("Failed to begin transaction", err)
+// 	}
+// 	defer tx.Rollback()
+
+// 	hashedPassword := fmt.Sprintf("%x", md5.Sum([]byte(params.Password)))
+// 	user := models.User{
+// 		Username:   params.Username,
+// 		Password:   hashedPassword,
+// 		Enable:     params.Enable,
+// 		CreateTime: time.Now(),
+// 		UpdateTime: time.Now(),
+// 	}
+// 	_, err = tx.NamedExec(`INSERT INTO user (username, password, enable, createTime, updateTime) VALUES (:username, :password, :enable, :createTime, :updateTime)`, user)
+// 	if err != nil {
+// 		return utils.NewError("Failed to insert user", err)
+// 	}
+
+// 	profile := models.Profile{
+// 		UserId:   user.ID,
+// 		NickName: user.Username,
+// 	}
+// 	_, err = tx.NamedExec(`INSERT INTO profile (userId, nickName) VALUES (:userId, :nickName)`, profile)
+// 	if err != nil {
+// 		return utils.NewError("Failed to insert profile", err)
+// 	}
+
+// 	for _, roleId := range params.RoleIds {
+// 		_, err = tx.Exec("INSERT INTO user_roles_role (userId, roleId) VALUES (?, ?)", user.ID, roleId)
+// 		if err != nil {
+// 			return utils.NewError("Failed to insert user role", err)
+// 		}
+// 	}
+
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return utils.NewError("Failed to commit transaction", err)
+// 	}
+// 	return nil
+// }
+
+// func (s *UserService) DeleteUser(userID int) error {
+// 	tx, err := s.db.Beginx()
+// 	if err != nil {
+// 		return utils.NewError("Failed to begin transaction", err)
+// 	}
+// 	defer tx.Rollback()
+
+// 	_, err = tx.Exec("DELETE FROM user WHERE id = ?", userID)
+// 	if err != nil {
+// 		return utils.NewError("Failed to delete user", err)
+// 	}
+
+// 	_, err = tx.Exec("DELETE FROM user_roles_role WHERE userId = ?", userID)
+// 	if err != nil {
+// 		return utils.NewError("Failed to delete user roles", err)
+// 	}
+
+// 	_, err = tx.Exec("DELETE FROM profile WHERE userId = ?", userID)
+// 	if err != nil {
+// 		return utils.NewError("Failed to delete profile", err)
+// 	}
+
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return utils.NewError("Failed to commit transaction", err)
+// 	}
+// 	return nil
+// }
 
 // func (u *UserService) ListUsers() (user []models.User, err error) {
 // 	user, err = models.ListUsers()

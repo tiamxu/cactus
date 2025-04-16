@@ -14,7 +14,6 @@ func NewPermissionsServiceService() *PermissionsService {
 }
 
 func (s *PermissionsService) GetPermissionsTree(userID int) ([]models.Permission, error) {
-	// 调用 Models 层的方法获取权限树
 	permissions, err := models.GetPermissionsTree(userID)
 	if err != nil {
 		return nil, err

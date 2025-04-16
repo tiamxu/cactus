@@ -64,7 +64,7 @@ func loadConfig() {
 	case "prod":
 		configPath = "config/config-prod.yaml"
 	default:
-		configPath = "config/config.yaml"
+		configPath = "config/config-dev.yaml"
 	}
 
 	multiconfig.MustLoadWithPath(configPath, cfg)
