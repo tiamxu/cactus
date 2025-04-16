@@ -48,7 +48,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	user, _, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication failed"})
+		Resp.Err(c, 20001, "账号或密码不正确")
 		return
 	}
 	Resp.Succ(c, inout.LoginRes{

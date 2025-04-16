@@ -175,13 +175,39 @@ func ExistsByUsername(username string) (bool, error) {
 	return exists, err
 }
 
-func GetUserList(enable string, limit, offset int) ([]User, error) {
-	query := `
-		SELECT * FROM users
-		WHERE enable = ? OR ? = ''
-		LIMIT ? OFFSET ?
-	`
+func GetUsersByCondition(gender, enable, username string, limit, offset int) ([]User, int64, error) {
 	var users []User
-	err := DB.Select(&users, query, enable, enable, limit, offset)
-	return users, err
+	var total int64
+
+	// 构建基础查询
+	query := "SELECT * FROM user WHERE 1=1"
+	var params []interface{}
+
+	// 添加筛选条件
+	if enable != "" {
+		query += " AND enable = ?"
+		params = append(params, enable)
+	}
+
+	// 获取总数
+	countQuery := "SELECT COUNT(*) FROM user WHERE 1=1"
+	if enable != "" {
+		countQuery += " AND enable = ?"
+	}
+	err := DB.Get(&total, countQuery, params...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 添加分页
+	query += " LIMIT ? OFFSET ?"
+	params = append(params, limit, offset)
+
+	// 执行查询
+	err = DB.Select(&users, query, params...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }

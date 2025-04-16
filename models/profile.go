@@ -45,13 +45,53 @@ func GetProfilesByUserIDs(userIds []int) ([]Profile, error) {
 }
 
 func GetProfilesByUserIds(userIds []int) ([]Profile, error) {
-	query := `
-		SELECT * FROM profiles
-		WHERE userId IN (?)
-	`
-	query, args, _ := sqlx.In(query, userIds)
-	query = DB.Rebind(query)
+	if len(userIds) == 0 {
+		return nil, nil
+
+	}
+	// query := `SELECT * FROM profiles WHERE userId IN (?)`
+	// query, args, _ := sqlx.In(query, userIds)
+	// query = DB.Rebind(query)
+	query, args, err := sqlx.In("SELECT * FROM profile WHERE userId IN (?)", userIds)
+	if err != nil {
+		return nil, err
+	}
 	var profiles []Profile
-	err := DB.Select(&profiles, query, args...)
+	err = DB.Select(&profiles, query, args...)
+	if err != nil {
+		return nil, err
+	}
 	return profiles, err
+}
+
+func GetProfilesByCondition(gender, username string, userIds []int) ([]Profile, error) {
+	query := "SELECT * FROM profile WHERE 1=1"
+	var params []interface{}
+
+	if gender != "" {
+		query += " AND gender = ?"
+		params = append(params, gender)
+	}
+
+	if username != "" {
+		query += " AND nickName LIKE ?"
+		params = append(params, "%"+username+"%")
+	}
+
+	if len(userIds) > 0 {
+		inQuery, inArgs, err := sqlx.In(" AND userId IN (?)", userIds)
+		if err != nil {
+			return nil, err
+		}
+		query += inQuery
+		params = append(params, inArgs...)
+	}
+
+	var profiles []Profile
+	err := DB.Select(&profiles, query, params...)
+	if err != nil {
+		return nil, err
+	}
+
+	return profiles, nil
 }

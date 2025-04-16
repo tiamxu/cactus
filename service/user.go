@@ -88,36 +88,52 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 	var data = inout.UserListRes{
 		PageData: make([]inout.UserListItem, 0),
 	}
-	offset := (pageNo - 1) * pageSize
-	users, err := models.GetUserList(enable, pageSize, offset)
+
+	// 获取用户列表
+	users, total, err := models.GetUsersByCondition(gender, enable, username, pageSize, (pageNo-1)*pageSize)
 	if err != nil {
-		return nil, errors.New("查询用户列表失败")
+		return nil, fmt.Errorf("查询用户列表失败: %w", err)
+	}
+	data.Total = total
+
+	if len(users) == 0 {
+		return &data, nil
 	}
 
-	// 提取用户 ID 列表
-	userIds := make([]int, len(users))
-	for i, user := range users {
-		userIds[i] = user.ID
-	}
-
-	// 查询用户资料
-	profiles, err := models.GetProfilesByUserIds(userIds)
-	if err != nil {
-		return nil, errors.New("查询用户资料失败")
-	}
-
-	// 查询用户角色
-	roleMap, err := models.GetRolesByUserIds(userIds)
-	if err != nil {
-		return nil, errors.New("查询用户角色失败")
-
-	}
-
-	// 组合数据
+	// 收集用户ID
+	userIds := make([]int, 0, len(users))
+	userMap := make(map[int]models.User)
 	for _, user := range users {
-		profile := findProfileByUserId(profiles, user.ID)
-		roles := roleMap[user.ID]
-		data.PageData = append(data.PageData, inout.UserListItem{
+		userIds = append(userIds, user.ID)
+		userMap[user.ID] = user
+	}
+
+	// 2. 获取用户资料
+	var profiles []models.Profile
+	if len(userIds) > 0 {
+		profiles, err = models.GetProfilesByCondition(gender, username, userIds)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 3. 获取用户角色
+	var userRoles map[int][]*models.Role
+	if len(userIds) > 0 {
+		userRoles, err = models.GetRolesByUserIds(userIds)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 4. 组装结果
+	for _, profile := range profiles {
+		user, ok := userMap[profile.UserId]
+		if !ok {
+			continue
+		}
+
+		item := inout.UserListItem{
 			ID:         user.ID,
 			Username:   user.Username,
 			Enable:     user.Enable,
@@ -127,10 +143,12 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 			Avatar:     profile.Avatar,
 			Address:    profile.Address,
 			Email:      profile.Email,
-			Roles:      roles,
-		})
+			Roles:      userRoles[user.ID],
+		}
 
+		data.PageData = append(data.PageData, item)
 	}
+
 	return &data, nil
 }
 
@@ -354,6 +372,16 @@ type UpdateUserRequest struct {
 // }
 
 // Delete 删除用户（业务校验）
+
+// 根据用户ID查找对应的profile
+func findProfileByUserId(profiles []models.Profile, userId int) *models.Profile {
+	for _, p := range profiles {
+		if p.UserId == userId {
+			return &p
+		}
+	}
+	return &models.Profile{} // 返回空profile避免nil
+}
 
 // func (s *UserService) Delete(id uint) error {
 // 	if id == 0 {

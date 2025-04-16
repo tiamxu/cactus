@@ -62,33 +62,56 @@ func GetRolesByUserIds(userIds []int) (map[int][]*Role, error) {
 		return nil, nil
 	}
 
-	// 使用JOIN一次性查询所有用户角色
-	query := `
-		SELECT urr.userId, r.* 
-		FROM role r
-		JOIN user_roles_role urr ON r.id = urr.roleId
-		WHERE urr.userId IN (?)`
-
-	query, args, err := sqlx.In(query, userIds)
+	// 获取用户角色关系
+	query, args, err := sqlx.In(`
+		SELECT userId, roleId FROM user_roles_role 
+		WHERE userId IN (?)
+	`, userIds)
 	if err != nil {
 		return nil, err
 	}
 
-	type userRole struct {
-		UserID int `db:"userId"`
-		Role
-	}
-
-	var userRoles []userRole
+	var userRoles []UserRolesRole
 	err = DB.Select(&userRoles, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	// 构建用户ID到角色列表的映射
-	result := make(map[int][]*Role)
+	// 收集所有角色ID
+	roleIds := make([]int, 0, len(userRoles))
+	userRoleMap := make(map[int][]int)
 	for _, ur := range userRoles {
-		result[ur.UserID] = append(result[ur.UserID], &ur.Role)
+		roleIds = append(roleIds, ur.RoleId)
+		userRoleMap[ur.UserId] = append(userRoleMap[ur.UserId], ur.RoleId)
+	}
+
+	// 获取所有角色
+	var roles []Role
+	if len(roleIds) > 0 {
+		roleQuery, roleArgs, err := sqlx.In("SELECT * FROM role WHERE id IN (?)", roleIds)
+		if err != nil {
+			return nil, err
+		}
+		err = DB.Select(&roles, roleQuery, roleArgs...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 构建角色ID到角色的映射
+	roleMap := make(map[int]Role)
+	for _, role := range roles {
+		roleMap[role.ID] = role
+	}
+
+	// 构建最终结果：用户ID到角色列表的映射
+	result := make(map[int][]*Role)
+	for userId, rIds := range userRoleMap {
+		for _, rId := range rIds {
+			if role, ok := roleMap[rId]; ok {
+				result[userId] = append(result[userId], &role)
+			}
+		}
 	}
 
 	return result, nil

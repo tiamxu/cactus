@@ -41,13 +41,12 @@ func (a *UserHandler) List(c *gin.Context) {
 	gender := c.DefaultQuery("gender", "")
 	enable := c.DefaultQuery("enable", "")
 	username := c.DefaultQuery("username", "")
-	pageNo := c.DefaultQuery("pageNo", "1")
-	pageSize := c.DefaultQuery("pageSize", "10")
+	var pageNoReq = c.DefaultQuery("pageNo", "1")
+	var pageSizeReq = c.DefaultQuery("pageSize", "10")
+	pageNo, _ := strconv.Atoi(pageNoReq)
+	pageSize, _ := strconv.Atoi(pageSizeReq)
 
-	pageNoInt, _ := strconv.Atoi(pageNo)
-	pageSizeInt, _ := strconv.Atoi(pageSize)
-
-	userListRes, err := a.userService.GetUserList(gender, enable, username, pageNoInt, pageSizeInt)
+	userListRes, err := a.userService.GetUserList(gender, enable, username, pageNo, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
