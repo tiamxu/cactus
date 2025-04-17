@@ -22,7 +22,7 @@ func InitRoutes(r *gin.Engine) {
 
 	r.Use(middleware.Jwt())
 	r.POST("/auth/logout", authHandler.Logout)
-	r.POST("/auth/password", authHandler.Logout)
+	r.POST("/auth/password", authHandler.Password)
 
 	r.GET("/user", userHandler.List)
 	r.POST("/user", userHandler.Add)
@@ -39,7 +39,7 @@ func InitRoutes(r *gin.Engine) {
 	r.PATCH("/role/users/add/:id", roleHandler.AddUser)
 	r.PATCH("/role/users/remove/:id", roleHandler.RemoveUser)
 	r.GET("/role/page", roleHandler.ListPage)
-	r.GET("/role/permissions/tree", permissionHandler.PermissionsTree)
+	r.GET("/role/permissions/tree", roleHandler.PermissionsTree)
 
 	r.POST("/permission", permissionHandler.Add)
 	r.PATCH("/permission/:id", permissionHandler.PatchPermission)

@@ -211,3 +211,27 @@ func GetUsersByCondition(gender, enable, username string, limit, offset int) ([]
 
 	return users, total, nil
 }
+
+// GetPasswordHash 获取用户当前密码哈希
+func GetPasswordHash(uid int) (string, error) {
+	var currentPasswordHash string
+	err := DB.Get(&currentPasswordHash,
+		"SELECT password FROM user WHERE id = ?",
+		uid)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("用户不存在")
+		}
+		return "", fmt.Errorf("查询密码失败: %w", err)
+	}
+	return currentPasswordHash, nil
+}
+
+// UpdatePassword 更新用户密码
+func UpdatePassword(uid int, newHash string) error {
+	_, err := DB.Exec("UPDATE user SET password = ? WHERE id = ?", newHash, uid)
+	if err != nil {
+		return fmt.Errorf("更新密码失败: %w", err)
+	}
+	return nil
+}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/tiamxu/cactus/models"
 	"github.com/tiamxu/cactus/utils"
@@ -35,4 +36,30 @@ func (s *AuthService) Authenticate(username, password string) (*models.User, str
 	token := utils.GenerateToken(user.ID)
 
 	return user, token, nil
+}
+
+func (s *AuthService) ChangePassword(uid int, oldPwd, newPwd string) error {
+	// 1. 获取当前密码哈希
+	currentPasswordHash, err := models.GetPasswordHash(uid)
+	if err != nil {
+		return err
+	}
+
+	// 2. 验证旧密码
+	if err := bcrypt.CompareHashAndPassword([]byte(currentPasswordHash), []byte(oldPwd)); err != nil {
+		return fmt.Errorf("当前密码不正确")
+	}
+
+	// 3. 生成新密码哈希
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(newPwd), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("生成密码哈希失败: %w", err)
+	}
+
+	// 4. 更新密码
+	if err := models.UpdatePassword(uid, string(newPasswordHash)); err != nil {
+		return err
+	}
+
+	return nil
 }

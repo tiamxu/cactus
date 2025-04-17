@@ -57,11 +57,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 }
 
-func (h *AuthHandler) password(c *gin.Context) {
-	var params inout.AuthPwReq
-	err := c.Bind(&params)
+func (h *AuthHandler) Password(c *gin.Context) {
+	var req inout.AuthPwReq
+	err := c.Bind(&req)
 	if err != nil {
 		Resp.Err(c, 20001, err.Error())
+		return
+	}
+	uid, _ := c.Get("uid")
+	if err := h.authService.ChangePassword(uid.(int), req.OldPassword, req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
