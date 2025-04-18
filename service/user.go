@@ -11,7 +11,7 @@ import (
 
 // 定义业务错误
 var (
-	ErrUserNotFound   = errors.New("user not found")
+	// ErrUserNotFound   = errors.New("user not found")
 	ErrUsernameExists = errors.New("username already exists")
 	ErrInvalidRequest = errors.New("invalid request parameters")
 )

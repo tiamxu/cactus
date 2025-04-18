@@ -11,6 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	ErrUserNotFound        = errors.New("用户不存在")
+	ErrPasswordMismatch    = errors.New("密码验证失败")
+	ErrDatabaseQueryFailed = errors.New("数据库查询失败")
+)
+
 type AuthService struct {
 }
 
@@ -21,16 +27,17 @@ func (s *AuthService) Authenticate(username, password string) (*models.User, str
 	user, err := models.GetUserByUsername(username)
 
 	if err != nil {
-		log.Errorf("数据库查询错误: %v\n", err)
-		return nil, "", errors.New("用户查询失败")
+		log.Errorf("数据库查询错误: %v", err)
+		return nil, "", fmt.Errorf("用户查询失败: %w", err)
 	}
 	if user == nil {
 		log.Infoln("用户不存在")
-		return nil, "", errors.New("用户不存在")
+		return nil, "", ErrUserNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, "", errors.New("密码验证失败")
+		log.Warnf("密码验证失败: %v", err)
+		return nil, "", ErrPasswordMismatch
 	}
 
 	token := utils.GenerateToken(user.ID)

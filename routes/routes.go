@@ -22,7 +22,7 @@ func InitRoutes(r *gin.Engine) {
 
 	r.Use(middleware.Jwt())
 	r.POST("/auth/logout", authHandler.Logout)
-	r.POST("/auth/password", authHandler.Password)
+	r.POST("/auth/password", authHandler.Logout)
 
 	r.GET("/user", userHandler.List)
 	r.POST("/user", userHandler.Add)
