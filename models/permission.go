@@ -1,6 +1,10 @@
 package models
 
-import "github.com/jmoiron/sqlx"
+import (
+	"errors"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type Permission struct {
 	ID          int          `db:"id" json:"id"`
@@ -97,4 +101,34 @@ func GetPermissionsTree(userID int) ([]Permission, error) {
 	}
 
 	return roots, nil
+}
+
+func GetPermissionsList() ([]Permission, error) {
+	var onePermissList []Permission
+	err := DB.Select(&onePermissList, "SELECT * FROM permission WHERE parentId IS NULL ORDER BY `order` ASC")
+	if err != nil {
+		return nil, errors.New("查询一级权限失败")
+	}
+
+	// 遍历一级权限，查询二级权限
+	for i, perm := range onePermissList {
+		var twoPerissList []Permission
+		err := DB.Select(&twoPerissList, "SELECT * FROM permission WHERE parentId = ? ORDER BY `order` ASC", perm.ID)
+		if err != nil {
+			return nil, errors.New("询二级权限失败")
+		}
+		// 遍历二级权限，查询三级权限
+		for i2, perm2 := range twoPerissList {
+			var twoPerissList2 []Permission
+			err := DB.Select(&twoPerissList2, "SELECT * FROM permission WHERE parentId = ? ORDER BY `order` ASC", perm2.ID)
+			if err != nil {
+				return nil, errors.New("查询三级权限失败")
+			}
+			twoPerissList[i2].Children = twoPerissList2
+		}
+
+		onePermissList[i].Children = twoPerissList
+	}
+
+	return onePermissList, nil
 }

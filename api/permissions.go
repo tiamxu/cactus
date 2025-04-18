@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/service"
@@ -17,8 +19,11 @@ func NewPermissionsHandler() *PermissionsHandler {
 }
 
 func (p *PermissionsHandler) List(c *gin.Context) {
-	var data = &inout.RoleListRes{}
-
+	data, err := p.permissionsService.List()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "获取权限列表失败"})
+		return
+	}
 	Resp.Succ(c, data)
 }
 
