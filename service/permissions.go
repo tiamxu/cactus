@@ -24,7 +24,8 @@ func (p *PermissionsService) List() ([]models.Permission, error) {
 
 func (p *PermissionsService) ListPage(name string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
 	var data = &inout.RoleListPageRes{}
-
+	var total int64
+	data.Total = total
 	return data, nil
 }
 
