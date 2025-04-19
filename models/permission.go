@@ -31,76 +31,96 @@ func (Permission) TableName() string {
 }
 
 func GetPermissionsTree(userID int) ([]Permission, error) {
-	// 查询用户的角色 ID 列表
-	var roleIDs []int
-	queryRoleIDs := `SELECT roleId FROM user_roles_role WHERE userId = ?`
-	if err := DB.Select(&roleIDs, queryRoleIDs, userID); err != nil {
-		return nil, err
-	}
-
-	// 如果用户没有角色，返回空权限树
-	if len(roleIDs) == 0 {
-		return []Permission{}, nil
-	}
-
-	// 查询用户的权限 ID 列表
-	var permissionIDs []int
-	queryPermissionIDs := `SELECT permissionId FROM role_permissions_permission WHERE roleId IN (?)`
-	query, args, err := sqlx.In(queryPermissionIDs, roleIDs)
+	// 检查是否是管理员
+	var adminRole int64
+	err := DB.Get(&adminRole,
+		"SELECT COUNT(*) FROM user_roles_role WHERE userId = ? AND roleId = 1",
+		userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("查询管理员状态失败")
 	}
-	query = DB.Rebind(query) // 重新绑定查询语句
-	if err := DB.Select(&permissionIDs, query, args...); err != nil {
-		return nil, err
-	}
+	// 构建基础查询
+	baseQuery := "SELECT * FROM permissions WHERE parentId IS NULL ORDER BY `order` ASC"
+	var args []interface{}
 
-	// 如果用户没有权限，返回空权限树
-	if len(permissionIDs) == 0 {
-		return []Permission{}, nil
-	}
+	// 非管理员权限过滤
+	if adminRole == 0 {
+		// 查询用户拥有的角色ID列表
 
-	// 查询所有权限，并构建树形结构
-	queryPermissions := `
-		SELECT 
-			p.id, p.name, p.code, p.type, p.parentId, p.path, p.icon, p.redirect, p.component , p.layout,
-			p.keepAlive, p.method, p.description, p.show, p.enable, p.order
-		FROM permission p
-		WHERE p.id IN (?)
-		ORDER BY p.order ASC
-	`
-	queryPermissions, args, err = sqlx.In(queryPermissions, permissionIDs)
-	if err != nil {
-		return nil, err
-	}
-	queryPermissions = DB.Rebind(queryPermissions) // 重新绑定查询语句
-	var permissions []Permission
-	if err := DB.Select(&permissions, queryPermissions, args...); err != nil {
-		return nil, err
-	}
-
-	// 构建树形结构
-	permissionMap := make(map[int]*Permission)
-	var roots []Permission
-
-	for i := range permissions {
-		permissions[i].Children = []Permission{}
-		permissionMap[permissions[i].ID] = &permissions[i]
-		if permissions[i].ParentId == nil {
-			roots = append(roots, permissions[i])
+		var uroleIds []int64
+		err := DB.Select(&uroleIds, "SELECT roleId FROM user_roles_role WHERE userId = ?", userID)
+		if err != nil {
+			return nil, errors.New("查询用户角色失败")
 		}
+		// 如果用户没有角色，返回空权限树
+		if len(uroleIds) == 0 {
+			return []Permission{}, nil
+		}
+		// 查询用户的权限 ID 列表
+		queryPermissionIDs := `SELECT permissionId FROM role_permissions_permission WHERE roleId IN (?)`
+		query, inArgs, err := sqlx.In(queryPermissionIDs, uroleIds)
+		query = DB.Rebind(query) // 重新绑定查询语句
+		if err != nil {
+			return nil, errors.New("构建权限查询失败")
+		}
+
+		var rpermisId []int64
+		err = DB.Select(&rpermisId, query, inArgs...)
+		if err != nil {
+			return nil, errors.New("查询角色权限失败")
+		}
+		// 如果用户没有权限，返回空权限树
+
+		if len(rpermisId) == 0 {
+			return []Permission{}, nil
+		}
+
+		// 添加权限过滤条件
+		permQuery, permArgs, err := sqlx.In("id IN (?)", rpermisId)
+		permQuery = DB.Rebind(permQuery) // 重新绑定查询语句
+		if err != nil {
+			return nil, errors.New("构建权限过滤条件失败")
+
+		}
+
+		baseQuery += " AND " + permQuery
+		args = append(args, permArgs...)
+
+	}
+	// 查询一级权限
+	var onePermissList []Permission
+	err = DB.Select(&onePermissList, baseQuery, args...)
+	if err != nil {
+		return nil, errors.New("查询一级权限失败")
 	}
 
-	for i := range permissions {
-		if permissions[i].ParentId != nil {
-			parent, exists := permissionMap[*permissions[i].ParentId]
-			if exists {
-				parent.Children = append(parent.Children, permissions[i])
+	// 构建权限树
+	for i, perm := range onePermissList {
+		// 查询二级权限
+		var twoPerissList []Permission
+		err = DB.Select(&twoPerissList,
+			"SELECT * FROM permissions WHERE parentId = ? ORDER BY `order` ASC",
+			perm.ID)
+		if err != nil {
+			return nil, errors.New("查询二级权限失败")
+		}
+
+		for i2, perm2 := range twoPerissList {
+			// 查询三级权限
+			var twoPerissList2 []Permission
+			err = DB.Select(&twoPerissList2,
+				"SELECT * FROM permissions WHERE parentId = ? ORDER BY `order` ASC",
+				perm2.ID)
+			if err != nil {
+				return nil, errors.New("查询三级权限失败")
+
 			}
+			twoPerissList[i2].Children = twoPerissList2
 		}
+		onePermissList[i].Children = twoPerissList
 	}
 
-	return roots, nil
+	return onePermissList, nil
 }
 
 func GetPermissionsList() ([]Permission, error) {

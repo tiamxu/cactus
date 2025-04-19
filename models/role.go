@@ -116,3 +116,23 @@ func GetRolesByUserIds(userIds []int) (map[int][]*Role, error) {
 
 	return result, nil
 }
+
+func GetRolesCountWhereByName(name string) (int64, error) {
+	baseQuery := "SELECT * FROM roles"
+	countQuery := "SELECT COUNT(*) FROM roles"
+	var args []interface{}
+	var total int64
+	if name != "" {
+		whereClause := " WHERE name LIKE ?"
+		baseQuery += whereClause
+		countQuery += whereClause
+		args = append(args, "%"+name+"%")
+	}
+	// 执行计数查询
+	err := DB.Get(&total, countQuery, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}

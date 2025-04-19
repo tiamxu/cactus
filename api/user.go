@@ -37,6 +37,7 @@ func (a *UserHandler) Detail(c *gin.Context) {
 	}
 	Resp.Succ(c, userDetail)
 }
+
 func (a *UserHandler) List(c *gin.Context) {
 	gender := c.DefaultQuery("gender", "")
 	enable := c.DefaultQuery("enable", "")
