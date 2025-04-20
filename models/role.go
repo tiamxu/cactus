@@ -26,9 +26,8 @@ func GetPermissionsTree(userID int) ([]Permission, error) {
 		return nil, errors.New("查询管理员状态失败")
 	}
 	// 构建基础查询
-	baseQuery := "SELECT * FROM permissions WHERE parentId IS NULL ORDER BY `order` ASC"
+	baseQuery := "SELECT * FROM permission WHERE parentId IS NULL ORDER BY `order` ASC"
 	var args []interface{}
-
 	// 非管理员权限过滤
 	if adminRole == 0 {
 		// 查询用户拥有的角色ID列表
@@ -85,7 +84,7 @@ func GetPermissionsTree(userID int) ([]Permission, error) {
 		// 查询二级权限
 		var twoPerissList []Permission
 		err = DB.Select(&twoPerissList,
-			"SELECT * FROM permissions WHERE parentId = ? ORDER BY `order` ASC",
+			"SELECT * FROM permission WHERE parentId = ? ORDER BY `order` ASC",
 			perm.ID)
 		if err != nil {
 			return nil, errors.New("查询二级权限失败")
@@ -95,7 +94,7 @@ func GetPermissionsTree(userID int) ([]Permission, error) {
 			// 查询三级权限
 			var twoPerissList2 []Permission
 			err = DB.Select(&twoPerissList2,
-				"SELECT * FROM permissions WHERE parentId = ? ORDER BY `order` ASC",
+				"SELECT * FROM permission WHERE parentId = ? ORDER BY `order` ASC",
 				perm2.ID)
 			if err != nil {
 				return nil, errors.New("查询三级权限失败")
@@ -252,10 +251,20 @@ func GetRolesCountWhereByName(name string, limit, offset int) (int64, error) {
 	baseQuery += " LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
-	// 执行分页查询
-	err = DB.Select(&data.PageData, baseQuery, args...)
-	if err != nil {
-		return 0, errors.New("查询角色列表失败")
-	}
+	// // 执行分页查询
+	// err = DB.Select(&data.PageData, baseQuery, args...)
+	// if err != nil {
+	// 	return 0, errors.New("查询角色列表失败")
+	// }
 	return total, nil
+}
+
+func GetRolesList() ([]*Role, error) {
+	var roles []*Role
+	err := DB.Select(&roles, "SELECT * FROM role")
+
+	if err != nil {
+		return nil, errors.New("查询角色失败")
+	}
+	return roles, nil
 }

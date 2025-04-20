@@ -1,6 +1,11 @@
 package models
 
-import "github.com/jmoiron/sqlx"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type Profile struct {
 	ID       int    `db:"id" json:"id"`
@@ -64,34 +69,46 @@ func GetProfilesByUserIds(userIds []int) ([]Profile, error) {
 	return profiles, err
 }
 
-func GetProfilesByCondition(gender, username string, userIds []int) ([]Profile, error) {
-	query := "SELECT * FROM profile WHERE 1=1"
-	var params []interface{}
+func GetProfilesByCondition(gender, enable, username string, pageNo, pageSize int) ([]*Profile, int64, error) {
+	query := "SELECT p.* FROM profile p WHERE 1=1"
+	// countQuery := "SELECT COUNT(*) FROM profile"
+	var args []interface{}
+	var total int64
 
 	if gender != "" {
-		query += " AND gender = ?"
-		params = append(params, gender)
+		whereCause := " AND gender = ?"
+		query = query + whereCause
+		// countQuery = countQuery + whereCause
+		args = append(args, gender)
 	}
-
+	if enable != "" {
+		whereCause := " AND p.userId IN (SELECT id FROM user WHERE enable = ?)"
+		query = query + whereCause
+		// countQuery = countQuery + whereCause
+		args = append(args, enable)
+	}
 	if username != "" {
-		query += " AND nickName LIKE ?"
-		params = append(params, "%"+username+"%")
+		whereCause := " AND nickName LIKE ?"
+		query = query + whereCause
+		// countQuery = countQuery + whereCause
+		args = append(args, "%"+username+"%")
 	}
-
-	if len(userIds) > 0 {
-		inQuery, inArgs, err := sqlx.In(" AND userId IN (?)", userIds)
-		if err != nil {
-			return nil, err
-		}
-		query += inQuery
-		params = append(params, inArgs...)
-	}
-
-	var profiles []Profile
-	err := DB.Select(&profiles, query, params...)
+	countQuery := "SELECT COUNT(*) FROM (" + query + ") AS t"
+	fmt.Println("countQuery", countQuery)
+	err := DB.Get(&total, countQuery, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, errors.New("查询总数失败")
 	}
 
-	return profiles, nil
+	// 分页查询
+	pageQuery := query + " LIMIT ? OFFSET ?"
+	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
+	fmt.Printf("Executing SQL: %s\nWith args: %v\n", pageQuery, pageArgs)
+	var profileList []*Profile
+	err = DB.Select(&profileList, pageQuery, pageArgs...)
+	if err != nil {
+		return nil, 0, errors.New("查询用户资料失败")
+	}
+	fmt.Println("profileList", profileList)
+	return profileList, total, nil
 }

@@ -26,3 +26,11 @@ func (s *RoleService) GetPermissionsTree(userID int) ([]models.Permission, error
 
 	return permissions, nil
 }
+
+func (s *RoleService) List() ([]*models.Role, error) {
+	data, err := models.GetRolesList()
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}

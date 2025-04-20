@@ -88,65 +88,36 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 	var data = inout.UserListRes{
 		PageData: make([]inout.UserListItem, 0),
 	}
-
-	// 获取用户列表
-	users, total, err := models.GetUsersByCondition(gender, enable, username, pageSize, (pageNo-1)*pageSize)
+	profiles, total, err := models.GetProfilesByCondition(gender, enable, username, pageNo, pageSize)
 	if err != nil {
-		return nil, fmt.Errorf("查询用户列表失败: %w", err)
+		return nil, errors.New("查询用户资料信息失败")
 	}
 	data.Total = total
 
-	if len(users) == 0 {
-		return &data, nil
-	}
-
-	// 收集用户ID
-	userIds := make([]int, 0, len(users))
-	userMap := make(map[int]models.User)
-	for _, user := range users {
-		userIds = append(userIds, user.ID)
-		userMap[user.ID] = user
-	}
-
-	// 2. 获取用户资料
-	var profiles []models.Profile
-	if len(userIds) > 0 {
-		profiles, err = models.GetProfilesByCondition(gender, username, userIds)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// 3. 获取用户角色
-	var userRoles map[int][]*models.Role
-	if len(userIds) > 0 {
-		userRoles, err = models.GetRolesByUserIds(userIds)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// 4. 组装结果
 	for _, profile := range profiles {
-		user, ok := userMap[profile.UserId]
-		if !ok {
-			continue
-		}
 
-		item := inout.UserListItem{
-			ID:         user.ID,
-			Username:   user.Username,
-			Enable:     user.Enable,
-			CreateTime: user.CreateTime,
-			UpdateTime: user.UpdateTime,
+		uinfo, err := models.GetUserByID(profile.UserId)
+		if err != nil {
+			return nil, errors.New("查询用户信息失败")
+		}
+		roles, err := models.GetRolesByUserId(profile.UserId)
+		if err != nil {
+			return nil, errors.New("查询用户角色失败")
+		}
+		// 组装返回数据
+		data.PageData = append(data.PageData, inout.UserListItem{
+			ID:         uinfo.ID,
+			Username:   uinfo.Username,
+			Enable:     uinfo.Enable,
+			CreateTime: uinfo.CreateTime,
+			UpdateTime: uinfo.UpdateTime,
 			Gender:     profile.Gender,
 			Avatar:     profile.Avatar,
 			Address:    profile.Address,
 			Email:      profile.Email,
-			Roles:      userRoles[user.ID],
-		}
+			Roles:      roles,
+		})
 
-		data.PageData = append(data.PageData, item)
 	}
 
 	return &data, nil

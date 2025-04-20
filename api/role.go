@@ -18,7 +18,7 @@ func NewRoleHandler() *RoleHandler {
 	}
 }
 
-func (a *RoleHandler) PermissionsTree(c *gin.Context) {
+func (r *RoleHandler) PermissionsTree(c *gin.Context) {
 	// 从上下文中获取用户 ID
 	userIDInterface, ok := c.Get("uid")
 	if !ok {
@@ -33,7 +33,7 @@ func (a *RoleHandler) PermissionsTree(c *gin.Context) {
 	}
 
 	// 调用 Service 层获取权限树
-	permissions, err := a.roleService.GetPermissionsTree(userID)
+	permissions, err := r.roleService.GetPermissionsTree(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -43,8 +43,11 @@ func (a *RoleHandler) PermissionsTree(c *gin.Context) {
 	Resp.Succ(c, permissions)
 }
 func (r *RoleHandler) List(c *gin.Context) {
-	var data = &inout.RoleListRes{}
-
+	data, err := r.roleService.List()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	Resp.Succ(c, data)
 }
 

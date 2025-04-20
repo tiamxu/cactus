@@ -34,7 +34,6 @@ func GetPermissionsList() ([]Permission, error) {
 	if err != nil {
 		return nil, errors.New("查询一级权限失败")
 	}
-
 	// 遍历一级权限，查询二级权限
 	for i, perm := range onePermissList {
 		var twoPerissList []Permission
