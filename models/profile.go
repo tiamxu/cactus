@@ -112,3 +112,35 @@ func GetProfilesByCondition(gender, enable, username string, pageNo, pageSize in
 	fmt.Println("profileList", profileList)
 	return profileList, total, nil
 }
+
+func UpdateProfileByWhere(p Profile) error {
+	query := `
+        UPDATE profile
+        SET gender = :gender, 
+            address = :address, 
+            email = :email, 
+            nickName = :nickName
+        WHERE id = :id
+    `
+
+	result, err := DB.NamedExec(query, map[string]interface{}{
+		"id":       p.ID,
+		"gender":   p.Gender,
+		"address":  p.Address,
+		"email":    p.Email,
+		"nickName": p.NickName,
+	})
+	if err != nil {
+		return err
+
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.New("无法获取受影响行数")
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("未找到要更新的记录")
+	}
+	return nil
+}

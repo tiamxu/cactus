@@ -123,13 +123,20 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 	return &data, nil
 }
 
-// func (s *UserService) UpdateProfile(params *inout.PatchProfileUserReq) error {
-// 	_, err := s.db.Exec("UPDATE profile SET gender = ?, address = ?, email = ?, nickName = ? WHERE id = ?", params.Gender, params.Address, params.Email, params.NickName, params.Id)
-// 	if err != nil {
-// 		return utils.NewError("Failed to update profile", err)
-// 	}
-// 	return nil
-// }
+func (s *UserService) UpdateProfile(params inout.PatchProfileUserReq) error {
+	a := models.Profile{
+		ID:       params.Id,
+		Gender:   params.Gender,
+		Address:  params.Address,
+		Email:    params.Email,
+		NickName: params.NickName,
+	}
+	err := models.UpdateProfileByWhere(a)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // func (s *UserService) UpdateUser(params *inout.PatchUserReq) error {
 // 	tx, err := s.db.Beginx()

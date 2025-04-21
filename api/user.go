@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/service"
 
 	"github.com/gin-gonic/gin"
@@ -57,9 +58,22 @@ func (a *UserHandler) List(c *gin.Context) {
 
 }
 func (a *UserHandler) Profile(c *gin.Context) {
+	var params inout.PatchProfileUserReq
+	if err := c.BindJSON(&params); err != nil {
+		Resp.Err(c, 20001, err.Error())
+		return
+	}
+	err := a.userService.UpdateProfile(params)
+	if err != nil {
+		Resp.Err(c, 20001, err.Error())
+		return
+	}
 }
-func (a *UserHandler) Update(c *gin.Context) {
-}
+
+// func (a *UserHandler) Update(c *gin.Context) {
+// 	var params inout.PatchUserReq
+
+// }
 func (a *UserHandler) Add(c *gin.Context) {
 }
 func (a *UserHandler) Delete(c *gin.Context) {
