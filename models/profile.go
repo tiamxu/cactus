@@ -103,13 +103,11 @@ func GetProfilesByCondition(gender, enable, username string, pageNo, pageSize in
 	// 分页查询
 	pageQuery := query + " LIMIT ? OFFSET ?"
 	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
-	fmt.Printf("Executing SQL: %s\nWith args: %v\n", pageQuery, pageArgs)
 	var profileList []*Profile
 	err = DB.Select(&profileList, pageQuery, pageArgs...)
 	if err != nil {
 		return nil, 0, errors.New("查询用户资料失败")
 	}
-	fmt.Println("profileList", profileList)
 	return profileList, total, nil
 }
 

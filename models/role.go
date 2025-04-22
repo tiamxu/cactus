@@ -231,13 +231,13 @@ func GetRolesCountByWhereName(name string) (int64, error) {
 	return total, nil
 
 }
-func GetRolesCountWhereByName(name string, limit, offset int) (int64, error) {
-	baseQuery := "c"
-	countQuery := "SELECT COUNT(*) FROM roles"
+func GetRolesCountWhereByName(name string, enable int, pageNo, pageSize int) ([]*Role, int64, error) {
+	baseQuery := "SELECT * FROM role WHERE 1=1"
+	countQuery := "SELECT COUNT(*) FROM role WHERE 1=1"
 	var args []interface{}
 	var total int64
 	if name != "" {
-		whereClause := " WHERE name LIKE ?"
+		whereClause := " AND name LIKE ?"
 		baseQuery += whereClause
 		countQuery += whereClause
 		args = append(args, "%"+name+"%")
@@ -245,18 +245,18 @@ func GetRolesCountWhereByName(name string, limit, offset int) (int64, error) {
 	// 执行计数查询
 	err := DB.Get(&total, countQuery, args...)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
 	// 添加分页条件
-	baseQuery += " LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
+	pageQuery := baseQuery + " LIMIT ? OFFSET ?"
+	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
+	var userList []*Role
 	// // 执行分页查询
-	// err = DB.Select(&data.PageData, baseQuery, args...)
-	// if err != nil {
-	// 	return 0, errors.New("查询角色列表失败")
-	// }
-	return total, nil
+	err = DB.Select(&userList, pageQuery, pageArgs...)
+	if err != nil {
+		return nil, 0, errors.New("查询角色列表失败")
+	}
+	return userList, total, nil
 }
 
 func GetRolesList() ([]*Role, error) {
