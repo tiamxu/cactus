@@ -3,9 +3,11 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -232,6 +234,195 @@ func UpdatePassword(uid int, newHash string) error {
 	_, err := DB.Exec("UPDATE user SET password = ? WHERE id = ?", newHash, uid)
 	if err != nil {
 		return fmt.Errorf("更新密码失败: %w", err)
+	}
+	return nil
+}
+
+func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds *[]int) error {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	if password != nil || enable != nil || username != nil {
+		query := "UPDATE users SET "
+		var args []interface{}
+		var setClauses []string
+
+		if password != nil {
+			setClauses = append(setClauses, "password = ?")
+			newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
+			if err != nil {
+				return fmt.Errorf("生成密码哈希失败: %w", err)
+			}
+			args = append(args, fmt.Sprintf("%x", newPasswordHash))
+		}
+		if enable != nil {
+			setClauses = append(setClauses, "enable = ?")
+			args = append(args, *enable)
+		}
+		if username != nil {
+			setClauses = append(setClauses, "username = ?")
+			args = append(args, *username)
+		}
+
+		query += strings.Join(setClauses, ", ") + " WHERE id = ?"
+		args = append(args, id)
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return err
+		}
+
+		// 如果更新了用户名，同时更新profile表
+		if username != nil {
+			_, err = tx.Exec("UPDATE profile SET nickName = ? WHERE userId = ?",
+				*username, id)
+			if err != nil {
+
+				return err
+			}
+		}
+	}
+
+	// 处理角色更新
+	if roleIds != nil {
+		// 删除现有角色
+		_, err = tx.Exec("DELETE FROM user_roles_role WHERE userId = ?", id)
+		if err != nil {
+			return err
+		}
+
+		// 添加新角色
+		if len(*roleIds) > 0 {
+			query := "INSERT INTO user_roles_role (userId, roleId) VALUES "
+			var placeholders []string
+			var args []interface{}
+
+			for _, roleId := range *roleIds {
+				placeholders = append(placeholders, "(?, ?)")
+				args = append(args, id, roleId)
+			}
+
+			query += strings.Join(placeholders, ", ")
+			_, err = tx.Exec(query, args...)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func AddUserByWhere(username, password string, enable bool, roleIds []int) error {
+	// 开始事务
+	tx, err := DB.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// 1. 创建用户
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("生成密码哈希失败: %w", err)
+	}
+	now := time.Now()
+
+	res, err := tx.Exec(`
+	 INSERT INTO users (username, password, enable, create_time, update_time) 
+	 VALUES (?, ?, ?, ?, ?)`,
+		username, newPasswordHash, enable, now, now)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 获取自增ID
+	userID, err := res.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 2. 创建用户资料
+	_, err = tx.Exec(`
+	 INSERT INTO profile (user_id, nick_name) 
+	 VALUES (?, ?)`,
+		userID, username)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 3. 添加用户角色
+	if len(roleIds) > 0 {
+		// 准备批量插入语句
+		query := "INSERT INTO user_roles_role (user_id, role_id) VALUES "
+		var placeholders []string
+		var args []interface{}
+
+		for _, roleID := range roleIds {
+			placeholders = append(placeholders, "(?, ?)")
+			args = append(args, userID, roleID)
+		}
+
+		query += strings.Join(placeholders, ", ")
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return err
+
+	}
+
+	return nil
+}
+
+func DeleteUserByWhere(uid int) error {
+	// 开始事务
+	tx, err := DB.Beginx()
+	if err != nil {
+		return nil
+	}
+
+	// 1. 删除用户角色关联
+	_, err = tx.Exec("DELETE FROM user_roles_role WHERE userId = ?", uid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 2. 删除用户资料
+	_, err = tx.Exec("DELETE FROM profile WHERE userId = ?", uid)
+	if err != nil {
+		tx.Rollback()
+		return err
+
+	}
+
+	// 3. 删除用户
+	_, err = tx.Exec("DELETE FROM user WHERE id = ?", uid)
+	if err != nil {
+		tx.Rollback()
+		return err
+
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return err
+
 	}
 	return nil
 }
