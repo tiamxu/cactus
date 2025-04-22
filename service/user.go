@@ -137,7 +137,7 @@ func (u *UserService) UpdateProfile(params inout.PatchProfileUserReq) error {
 	}
 	return nil
 }
-func (u *UserService) Update(params *inout.PatchUserReq) error {
+func (u *UserService) Update(params inout.PatchUserReq) error {
 	err := models.UpdateUserByWhere(params.Id, params.Username, params.Password, params.Enable, params.RoleIds)
 	if err != nil {
 		return err

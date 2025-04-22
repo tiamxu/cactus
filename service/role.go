@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/models"
@@ -36,42 +37,72 @@ func (r *RoleService) List() ([]*models.Role, error) {
 	return data, nil
 }
 
-func (r *RoleService) ListPage(enable int, username string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
+func (r *RoleService) ListPage(enable, username string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
 	var data = inout.RoleListPageRes{
 		PageData: make([]inout.RoleListPageItem, 0),
 	}
-	users, total, err := models.GetRolesCountWhereByName(username, enable, pageNo, pageSize)
+	roles, total, err := models.GetRolesCountWhereByName(username, enable, pageNo, pageSize)
 	if err != nil {
-		return nil, errors.New("查询用户资料信息失败")
+		return nil, errors.New("查询角色信息失败")
 	}
 	data.Total = total
-	for i, user := range users {
-		var perIdList []int
+	if len(roles) == 0 {
+		return &data, nil
+	}
+	//预分配足够容量的切片
+	data.PageData = make([]inout.RoleListPageItem, len(roles))
 
-		perIdList, err = models.GetPermissionsIdsByWhere(user.ID)
+	for i, role := range roles {
+		perIdList, err := models.GetPermissionsIdsByWhere(role.ID)
 		if err != nil {
 			return nil, err
 		}
-		data.PageData[i].PermissionIds = perIdList
+		data.PageData[i] = inout.RoleListPageItem{
+			Role:          *role,
+			PermissionIds: perIdList,
+		}
+
 	}
+
 	return &data, nil
 }
 
-func (r *RoleService) Update() {
-
+func (r *RoleService) Update(req inout.PatchRoleReq) error {
+	err := models.UpdateRoleWhereByCondition(&req.Id, req.Name, req.Code, req.Enable, req.PermissionIds)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
 
-func (r *RoleService) Add() {
-
+func (r *RoleService) Add(params inout.AddRoleReq) error {
+	fmt.Println("###params", params)
+	err := models.AddRoleWhereByCondition(params.Name, params.Code, params.Enable, params.PermissionIds)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
 
-func (r *RoleService) Delete() {
-
+func (r *RoleService) Delete(id string) error {
+	err := models.DeleteRolesWhereById(id)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
 
-func (r *RoleService) AddUser() {
-
+func (r *RoleService) AddUser(params inout.PatchRoleOpeateUserReq) error {
+	err := models.AddUserRolesByWhereId(params.UserIds, params.Id)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
-func (r *RoleService) RemoveUser() {
-
+func (r *RoleService) RemoveUser(params inout.PatchRoleOpeateUserReq) error {
+	err := models.RemoveUserRolesByWhereId(params.UserIds, params.Id)
+	if err != nil {
+		return nil
+	}
+	return nil
 }

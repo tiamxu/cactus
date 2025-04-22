@@ -37,7 +37,7 @@ type UserListRes struct {
 }
 type RoleListPageItem struct {
 	model.Role
-	PermissionIds []int64 `json:"permissionIds"`
+	PermissionIds []int `json:"permissionIds"`
 }
 type RoleListPageRes struct {
 	PageData []RoleListPageItem `json:"pageData"`

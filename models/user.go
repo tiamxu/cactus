@@ -238,7 +238,7 @@ func UpdatePassword(uid int, newHash string) error {
 	return nil
 }
 
-func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds *[]int) error {
+func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds []int) error {
 	tx, err := DB.Beginx()
 	if err != nil {
 		return err
@@ -300,12 +300,12 @@ func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds
 		}
 
 		// 添加新角色
-		if len(*roleIds) > 0 {
+		if len(roleIds) > 0 {
 			query := "INSERT INTO user_roles_role (userId, roleId) VALUES "
 			var placeholders []string
 			var args []interface{}
 
-			for _, roleId := range *roleIds {
+			for _, roleId := range roleIds {
 				placeholders = append(placeholders, "(?, ?)")
 				args = append(args, id, roleId)
 			}
@@ -335,7 +335,7 @@ func AddUserByWhere(username, password string, enable bool, roleIds []int) error
 	now := time.Now()
 
 	res, err := tx.Exec(`
-	 INSERT INTO users (username, password, enable, create_time, update_time) 
+	 INSERT INTO user (username, password, enable, createTime, updateTime) 
 	 VALUES (?, ?, ?, ?, ?)`,
 		username, newPasswordHash, enable, now, now)
 	if err != nil {
@@ -352,7 +352,7 @@ func AddUserByWhere(username, password string, enable bool, roleIds []int) error
 
 	// 2. 创建用户资料
 	_, err = tx.Exec(`
-	 INSERT INTO profile (user_id, nick_name) 
+	 INSERT INTO profile (userId, nickName) 
 	 VALUES (?, ?)`,
 		userID, username)
 	if err != nil {
@@ -363,7 +363,7 @@ func AddUserByWhere(username, password string, enable bool, roleIds []int) error
 	// 3. 添加用户角色
 	if len(roleIds) > 0 {
 		// 准备批量插入语句
-		query := "INSERT INTO user_roles_role (user_id, role_id) VALUES "
+		query := "INSERT INTO user_roles_role (userId, roleId) VALUES "
 		var placeholders []string
 		var args []interface{}
 

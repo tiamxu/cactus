@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -212,36 +214,38 @@ func GetRolesByUserIds(userIds []int) (map[int][]*Role, error) {
 	return result, nil
 }
 
-func GetRolesCountByWhereName(name string) (int64, error) {
-	var total int64
-	var args []interface{}
+// func GetRolesCountByWhereName(name string) (int64, error) {
+// 	var total int64
+// 	var args []interface{}
 
-	query := "SELECT COUNT(*) FROM roles"
-	if name != "" {
-		whereClause := " WHERE name LIKE ?"
-		query += whereClause
-		args = append(args, "%"+name+"%")
+// 	query := "SELECT COUNT(*) FROM roles"
+// 	if name != "" {
+// 		whereClause := " WHERE name LIKE ?"
+// 		query += whereClause
+// 		args = append(args, "%"+name+"%")
 
-	}
-	// 执行计数查询
-	err := DB.Get(&total, query, args...)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
+// 	}
+// 	// 执行计数查询
+// 	err := DB.Get(&total, query, args...)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return total, nil
 
-}
-func GetRolesCountWhereByName(name string, enable int, pageNo, pageSize int) ([]*Role, int64, error) {
+// }
+func GetRolesCountWhereByName(name string, enable string, pageNo, pageSize int) ([]*Role, int64, error) {
 	baseQuery := "SELECT * FROM role WHERE 1=1"
-	countQuery := "SELECT COUNT(*) FROM role WHERE 1=1"
+	// countQuery := "SELECT COUNT(*) FROM role WHERE 1=1"
 	var args []interface{}
 	var total int64
 	if name != "" {
 		whereClause := " AND name LIKE ?"
 		baseQuery += whereClause
-		countQuery += whereClause
+		// countQuery += whereClause
 		args = append(args, "%"+name+"%")
 	}
+	countQuery := "SELECT COUNT(*) FROM (" + baseQuery + ") AS t"
+
 	// 执行计数查询
 	err := DB.Get(&total, countQuery, args...)
 	if err != nil {
@@ -250,13 +254,14 @@ func GetRolesCountWhereByName(name string, enable int, pageNo, pageSize int) ([]
 	// 添加分页条件
 	pageQuery := baseQuery + " LIMIT ? OFFSET ?"
 	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
-	var userList []*Role
+	var roleList []*Role
 	// // 执行分页查询
-	err = DB.Select(&userList, pageQuery, pageArgs...)
+	err = DB.Select(&roleList, pageQuery, pageArgs...)
 	if err != nil {
 		return nil, 0, errors.New("查询角色列表失败")
 	}
-	return userList, total, nil
+	fmt.Println("####", pageQuery)
+	return roleList, total, nil
 }
 
 func GetRolesList() ([]*Role, error) {
@@ -267,4 +272,234 @@ func GetRolesList() ([]*Role, error) {
 		return nil, errors.New("查询角色失败")
 	}
 	return roles, nil
+}
+
+func UpdateRoleWhereByCondition(roleId *int, name, code *string, enable *bool, permissionIds []int) error {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return err
+	}
+	if name != nil || enable != nil || code != nil {
+		updateQuery := "UPDATE role SET "
+		var setClauses []string
+		var args []interface{}
+
+		if name != nil {
+			setClauses = append(setClauses, "name = ?")
+			args = append(args, *name)
+		}
+		if enable != nil {
+			setClauses = append(setClauses, "enable = ?")
+			args = append(args, *enable)
+		}
+		if code != nil {
+			setClauses = append(setClauses, "code = ?")
+			args = append(args, *code)
+		}
+
+		updateQuery += strings.Join(setClauses, ", ") + " WHERE id = ?"
+		args = append(args, roleId)
+
+		_, err = tx.Exec(updateQuery, args...)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("更新角色信息失败")
+		}
+	}
+
+	// 更新角色权限关联
+	if permissionIds != nil {
+		// 删除旧权限关联
+		_, err = tx.Exec("DELETE FROM role_permissions_permission WHERE roleId = ?", roleId)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("删除旧权限关联失败")
+		}
+
+		// 添加新权限关联
+		if len(permissionIds) > 0 {
+			// 构建批量插入语句
+			query := "INSERT INTO role_permissions_permission (permissionId, roleId) VALUES "
+			var placeholders []string
+			var insertArgs []interface{}
+
+			for _, permId := range permissionIds {
+				placeholders = append(placeholders, "(?, ?)")
+				insertArgs = append(insertArgs, permId, roleId)
+			}
+
+			query += strings.Join(placeholders, ", ")
+			_, err = tx.Exec(query, insertArgs...)
+			if err != nil {
+				tx.Rollback()
+				return errors.New("添加新权限关联失败")
+			}
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return errors.New("事务提交失败")
+	}
+	return nil
+}
+func AddRoleWhereByCondition(name string, code string, enable bool, permissionIds []int) error {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return errors.New("事务开启失败")
+
+	}
+
+	// 插入角色记录
+	res, err := tx.Exec(
+		"INSERT INTO role (code, name, enable) VALUES (?, ?, ?)",
+		code, name, enable)
+	if err != nil {
+		tx.Rollback()
+		return errors.New("创建角色失败")
+
+	}
+
+	// 获取自增ID
+	roleID, err := res.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return errors.New("获取角色ID失败")
+
+	}
+
+	// 添加权限关联
+	if len(permissionIds) > 0 {
+		// 构建批量插入语句
+		query := "INSERT INTO role_permissions_permission (roleId, permissionId) VALUES "
+		var placeholders []string
+		var args []interface{}
+
+		for _, permID := range permissionIds {
+			placeholders = append(placeholders, "(?, ?)")
+			args = append(args, roleID, permID)
+		}
+
+		query += strings.Join(placeholders, ", ")
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("添加权限关联失败")
+
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return errors.New("事务提交失败")
+
+	}
+	return nil
+}
+func DeleteRolesWhereById(roleId string) error {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return errors.New("事务开启失败")
+	}
+
+	//  删除用户角色关联
+	_, err = tx.Exec("DELETE FROM user_roles_role WHERE roleId = ?", roleId)
+	if err != nil {
+		tx.Rollback()
+		return errors.New("删除用户角色关联失败")
+
+	}
+
+	//  删除角色权限关联
+	_, err = tx.Exec("DELETE FROM role_permissions_permission WHERE roleId = ?", roleId)
+	if err != nil {
+		tx.Rollback()
+		return errors.New("删除角色权限关联失败")
+
+	}
+
+	// 删除角色记录
+	_, err = tx.Exec("DELETE FROM role WHERE id = ?", roleId)
+	if err != nil {
+		tx.Rollback()
+		return errors.New("删除角色记录失败")
+
+	}
+
+	//  提交事务
+	if err := tx.Commit(); err != nil {
+		return errors.New("事务提交失败")
+
+	}
+	return nil
+}
+
+func AddUserRolesByWhereId(userIds []int, roleId int) error {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return errors.New("事务开启失败")
+	}
+
+	// 5. 删除现有关联
+	if len(userIds) > 0 {
+		// 构建 IN 条件
+		query, args, err := sqlx.In("DELETE FROM user_roles_role WHERE userId IN (?) AND roleId = ?", userIds, roleId)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("删除旧关联失败")
+
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("删除旧关联失败")
+
+		}
+	}
+
+	// 6. 添加新关联
+	if len(userIds) > 0 {
+		// 构建批量插入语句
+		query := "INSERT INTO user_roles_role (userId, roleId) VALUES "
+		var placeholders []string
+		var insertArgs []interface{}
+
+		for _, userID := range userIds {
+			placeholders = append(placeholders, "(?, ?)")
+			insertArgs = append(insertArgs, userID, roleId)
+		}
+
+		query += strings.Join(placeholders, ", ")
+		_, err = tx.Exec(query, insertArgs...)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("添加新关联失败")
+
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return errors.New("事务提交失败")
+
+	}
+	return nil
+}
+
+func RemoveUserRolesByWhereId(userIds []int, roleId int) error {
+	if len(userIds) == 0 {
+		return errors.New("用户id为空")
+
+	}
+	query, args, err := sqlx.In("DELETE FROM user_roles_role WHERE userId IN (?) AND roleId = ?", userIds, roleId)
+	if err != nil {
+		return errors.New("构建删除语句失败")
+	}
+
+	_, err = DB.Exec(query, args...)
+	if err != nil {
+		return errors.New("删除关联失败")
+	}
+	return nil
 }

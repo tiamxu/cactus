@@ -12,7 +12,7 @@ type AuthPwReq struct {
 type PatchUserReq struct {
 	Id       int     `json:"id"  binding:"required"`
 	Enable   *bool   `json:"enable,omitempty"`
-	RoleIds  *[]int  `json:"roleIds,omitempty"`
+	RoleIds  []int   `json:"roleIds,omitempty"`
 	Password *string `json:"password,omitempty"`
 	Username *string `json:"username,omitempty"`
 }
@@ -46,7 +46,7 @@ type PatchRoleReq struct {
 	Code          *string `json:"code,omitempty"`
 	Enable        *bool   `json:"enable,omitempty"`
 	Name          *string `json:"name,omitempty"`
-	PermissionIds *[]int  `json:"permissionIds,omitempty"`
+	PermissionIds []int   `json:"permissionIds,omitempty"`
 }
 
 type PatchRoleOpeateUserReq struct {
