@@ -22,33 +22,92 @@ func (p *PermissionsService) List() ([]models.Permission, error) {
 	return data, nil
 }
 
-func (p *PermissionsService) ListPage(name string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
-	var data = &inout.RoleListPageRes{}
-	var total int64
+func (p *PermissionsService) ListPage(username string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
+	var data = inout.RoleListPageRes{
+		PageData: make([]inout.RoleListPageItem, 0),
+	}
+	roles, total, err := models.GetRolesCountWhereByName(username, pageNo, pageSize)
+	if err != nil {
+		return nil, errors.New("查询角色信息失败")
+	}
 	data.Total = total
-	return data, nil
+	if len(roles) == 0 {
+		return &data, nil
+	}
+	//预分配足够容量的切片
+	data.PageData = make([]inout.RoleListPageItem, len(roles))
+
+	for i, role := range roles {
+		perIdList, err := models.GetPermissionsIdsByWhere(role.ID)
+		if err != nil {
+			return nil, err
+		}
+		data.PageData[i] = inout.RoleListPageItem{
+			Role:          *role,
+			PermissionIds: perIdList,
+		}
+
+	}
+	return &data, nil
+
 }
 
-func (p *PermissionsService) Add() ([]models.Permission, error) {
-	data, err := models.GetPermissionsList()
-	if err != nil {
-		return nil, errors.New("获取权限列表错误")
+func (p *PermissionsService) Add(params inout.AddPermissionReq) error {
+	perm := models.Permission{
+		Name:      params.Name,
+		Code:      params.Code,
+		Type:      params.Type,
+		ParentId:  params.ParentId,
+		Path:      params.Path,
+		Icon:      params.Icon,
+		Component: params.Component,
+		Layout:    params.Layout,
+		KeepAlive: IsTrue(params.KeepAlive),
+		Method:    params.Component,
+		Show:      IsTrue(params.Show),
+		Enable:    IsTrue(params.Enable),
+		Order:     params.Order,
 	}
-	return data, nil
+	models.InsertPermissionByWhere(perm)
+	return nil
 }
 
-func (p *PermissionsService) Delete() ([]models.Permission, error) {
-	data, err := models.GetPermissionsList()
+func (p *PermissionsService) Delete(id string) error {
+
+	err := models.DeletePermissionByWhereId(id)
 	if err != nil {
-		return nil, errors.New("获取权限列表错误")
+		return errors.New("删除权限错误")
 	}
-	return data, nil
+	return nil
 }
 
-func (p *PermissionsService) PatchPermission() ([]models.Permission, error) {
-	data, err := models.GetPermissionsList()
-	if err != nil {
-		return nil, errors.New("获取权限列表错误")
+func (p *PermissionsService) PatchPermission(params inout.PatchPermissionReq) error {
+	perm := models.Permission{
+		ID:        params.Id,
+		Name:      params.Name,
+		Code:      params.Code,
+		Type:      params.Type,
+		ParentId:  params.ParentId,
+		Path:      params.Path,
+		Icon:      params.Icon,
+		Component: params.Component,
+		Layout:    params.Layout,
+		KeepAlive: params.KeepAlive,
+		Method:    params.Component,
+		Show:      params.Show,
+		Enable:    params.Enable,
+		Order:     params.Order,
 	}
-	return data, nil
+	err := models.UpdatePermissionByWhere(perm)
+	if err != nil {
+		return errors.New("更新权限信息失败")
+	}
+	return nil
+}
+
+func IsTrue(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
 }

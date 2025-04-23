@@ -41,7 +41,7 @@ func (r *RoleService) ListPage(enable, username string, pageNo, pageSize int) (*
 	var data = inout.RoleListPageRes{
 		PageData: make([]inout.RoleListPageItem, 0),
 	}
-	roles, total, err := models.GetRolesCountWhereByName(username, enable, pageNo, pageSize)
+	roles, total, err := models.GetRolesCountWhereByNameEnable(username, enable, pageNo, pageSize)
 	if err != nil {
 		return nil, errors.New("查询角色信息失败")
 	}
