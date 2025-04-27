@@ -57,42 +57,56 @@ func GetPermissionsList() ([]Permission, error) {
 	return onePermissList, nil
 }
 
-func InsertPermissionByWhere(p Permission) error {
+func InsertPermission(p Permission) error {
 	query := `
         INSERT INTO permission (
             name, code, type, parentId, path, 
-            icon, component, layout, keepAlive, 
-            show, enable, order
+            icon, component, layout, keepAlive,
+            ` + "`show`" + `, enable, ` + "`order`" + `
         ) VALUES (
-            ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, 
-            ?, ?, ?
+            :name, :code, :type, :parentId, :path, 
+            :icon, :component, :layout, :keepAlive, 
+            :show, :enable, :order
         )`
 
-	args := []interface{}{
-		p.Name,
-		p.Code,
-		p.Type,
-		nil, // 默认parent_id为NULL
-		p.Path,
-		p.Icon,
-		p.Component,
-		p.Layout,
-		p.KeepAlive,
-		p.Show,
-		p.Enable,
-		p.Order,
+	// args := []interface{}{
+	// 	p.Name,
+	// 	p.Code,
+	// 	p.Type,
+	// 	p.ParentId, // 默认parent_id为NULL
+	// 	p.Path,
+	// 	p.Icon,
+	// 	p.Component,
+	// 	p.Layout,
+	// 	p.KeepAlive,
+	// 	p.Show,
+	// 	p.Enable,
+	// 	p.Order,
+	// }
+	args := map[string]interface{}{
+		"name":      p.Name,
+		"code":      p.Code,
+		"type":      p.Type,
+		"parentId":  p.ParentId,
+		"path":      p.Path,
+		"icon":      p.Icon,
+		"component": p.Component,
+		"layout":    p.Layout,
+		"keepAlive": p.KeepAlive,
+		"method":    p.Method, // 修正了原来的错误
+		"show":      p.Show,
+		"enable":    p.Enable,
+		"order":     p.Order,
 	}
-
 	// 处理ParentId，如果不为0则设置值
-	if p.ParentId != nil {
-		args[3] = p.ParentId
-	}
+	// if p.ParentId != nil {
+	// 	args[3] = p.ParentId
+	// }
 
 	// 执行插入操作
-	_, err := DB.Exec(query, args...)
+	_, err := DB.NamedExec(query, args)
 	if err != nil {
-		return nil
+		return err
 	}
 	return nil
 }

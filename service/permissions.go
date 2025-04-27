@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/models"
@@ -68,7 +69,11 @@ func (p *PermissionsService) Add(params inout.AddPermissionReq) error {
 		Enable:    IsTrue(params.Enable),
 		Order:     params.Order,
 	}
-	models.InsertPermissionByWhere(perm)
+	err := models.InsertPermission(perm)
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil
+	}
 	return nil
 }
 

@@ -251,7 +251,7 @@ func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds
 		}
 	}()
 	if password != nil || enable != nil || username != nil {
-		query := "UPDATE users SET "
+		query := "UPDATE user SET "
 		var args []interface{}
 		var setClauses []string
 

@@ -74,7 +74,12 @@ func (a *UserHandler) Profile(c *gin.Context) {
 
 func (a *UserHandler) Update(c *gin.Context) {
 	var params inout.PatchUserReq
-	err := a.userService.Update(params)
+	err := c.BindJSON(&params)
+	if err != nil {
+		Resp.Err(c, 20001, err.Error())
+		return
+	}
+	err = a.userService.Update(params)
 	if err != nil {
 		Resp.Err(c, 20001, err.Error())
 		return
