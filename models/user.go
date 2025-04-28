@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -256,12 +257,13 @@ func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds
 		var setClauses []string
 
 		if password != nil {
-			setClauses = append(setClauses, "password = ?")
 			newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
 			if err != nil {
 				return fmt.Errorf("生成密码哈希失败: %w", err)
 			}
-			args = append(args, fmt.Sprintf("%x", newPasswordHash))
+			setClauses = append(setClauses, "password = ?")
+			args = append(args, newPasswordHash)
+			log.Printf("用户密码已更新（哈希处理）")
 		}
 		if enable != nil {
 			setClauses = append(setClauses, "enable = ?")

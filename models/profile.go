@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -94,7 +93,6 @@ func GetProfilesByCondition(gender, enable, username string, pageNo, pageSize in
 		args = append(args, "%"+username+"%")
 	}
 	countQuery := "SELECT COUNT(*) FROM (" + query + ") AS t"
-	fmt.Println("countQuery", countQuery)
 	err := DB.Get(&total, countQuery, args...)
 	if err != nil {
 		return nil, 0, errors.New("查询总数失败")
