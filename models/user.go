@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -263,7 +262,6 @@ func UpdateUserByWhere(id int, username, password *string, enable *bool, roleIds
 			}
 			setClauses = append(setClauses, "password = ?")
 			args = append(args, newPasswordHash)
-			log.Printf("用户密码已更新（哈希处理）")
 		}
 		if enable != nil {
 			setClauses = append(setClauses, "enable = ?")
