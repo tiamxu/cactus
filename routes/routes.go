@@ -16,6 +16,7 @@ func InitRoutes(r *gin.Engine) {
 	userHandler := api.NewUserHandler()
 	roleHandler := api.NewRoleHandler()
 	permissionHandler := api.NewPermissionsHandler()
+	projectHandler := api.NewProjectHandler()
 
 	r.POST("/auth/login", authHandler.Login)
 	r.GET("/auth/captcha", authHandler.Captcha)
@@ -46,5 +47,12 @@ func InitRoutes(r *gin.Engine) {
 	r.DELETE("/permission/:id", permissionHandler.Delete)
 	r.GET("/permission/tree", permissionHandler.List)
 	r.GET("/permission/menu/tree", permissionHandler.List)
+
+	r.GET("/project", projectHandler.List)
+	r.GET("/project/:id", projectHandler.List)
+	r.POST("/project", projectHandler.List)
+	r.PATCH("/project/:id", projectHandler.List)
+	r.DELETE("/project/:id", projectHandler.List)
+	r.PUT("/project/:id/status", projectHandler.List)
 
 }

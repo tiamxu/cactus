@@ -50,3 +50,18 @@ CREATE TABLE `menu` (
   PRIMARY KEY (`id`),
   KEY `idx_menu_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+DROP TABLE IF EXISTS `projects`;
+CREATE TABLE `projects` (
+    id          VARCHAR(36) PRIMARY KEY,
+    name        VARCHAR(50) NOT NULL NOT NULL DEFAULT '' COMMENT '项目名',
+    description TEXT NOT NULL DEFAULT '' COMMENT '描述',
+    status      VARCHAR(50) NOT NULL DEFAULT 'active' COMMENT '状态' ,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tags        TEXT[]
+);
+
+CREATE INDEX idx_projects_name ON projects(name);
+CREATE INDEX idx_projects_status ON projects(status);
