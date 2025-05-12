@@ -17,6 +17,9 @@ func InitRoutes(r *gin.Engine) {
 	roleHandler := api.NewRoleHandler()
 	permissionHandler := api.NewPermissionsHandler()
 	projectHandler := api.NewProjectHandler()
+	linkHandler := api.NewNavigationHandler()
+
+	r.GET("/links", linkHandler.RenderIndexPage)
 
 	r.POST("/auth/login", authHandler.Login)
 	r.GET("/auth/captcha", authHandler.Captcha)

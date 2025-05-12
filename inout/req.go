@@ -1,5 +1,7 @@
 package inout
 
+import "github.com/tiamxu/cactus/models"
+
 type LoginReq struct {
 	Username string `form:"username" binding:"required"`
 	Password string `form:"password" binding:"required"`
@@ -83,4 +85,17 @@ type PatchPermissionReq struct {
 	Enable    int    `json:"enable"`
 	KeepAlive int    `json:"keepAlive"`
 	Order     int    `json:"order"`
+}
+
+type CreateLinkRequest struct {
+	Title       string `json:"title" binding:"required"`
+	URL         string `json:"url" binding:"required,url"`
+	Icon        string `json:"icon"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
+}
+
+type GroupedLink struct {
+	Category string
+	Links    []models.NavigationLink
 }
