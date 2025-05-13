@@ -104,5 +104,8 @@ func (h *NavigationHandler) RenderIndexPage(c *gin.Context) {
 		return
 	}
 	Resp.Succ(c, grouped)
+	// c.HTML(http.StatusOK, "index.html", gin.H{
+	// 	"groupedLinks": grouped,
+	// })
 
 }

@@ -18,8 +18,9 @@ func InitRoutes(r *gin.Engine) {
 	permissionHandler := api.NewPermissionsHandler()
 	projectHandler := api.NewProjectHandler()
 	linkHandler := api.NewNavigationHandler()
-
-	r.GET("/links", linkHandler.RenderIndexPage)
+	// r.Static("/static", "./static")
+	// r.LoadHTMLGlob("static/templates/*")
+	// r.GET("/links", linkHandler.RenderIndexPage)
 
 	r.POST("/auth/login", authHandler.Login)
 	r.GET("/auth/captcha", authHandler.Captcha)
@@ -58,4 +59,10 @@ func InitRoutes(r *gin.Engine) {
 	r.DELETE("/project/:id", projectHandler.List)
 	r.PUT("/project/:id/status", projectHandler.List)
 
+	r.GET("/links", linkHandler.GetAllLinks)
+	// r.GET("/links", linkHandler.RenderIndexPage)
+
+	r.POST("/links", linkHandler.CreateLink)
+	r.PUT("/links/:id", linkHandler.UpdateLink)
+	r.DELETE("/links/:id", linkHandler.DeleteLink)
 }
