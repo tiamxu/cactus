@@ -15,8 +15,12 @@ type NavigationHandler struct {
 }
 
 func NewNavigationHandler() *NavigationHandler {
+	db := models.NewNavigationDB()
+	// service := service.NewNavigationService(db)
+	// return &NavigationHandler{service: service}
+
 	return &NavigationHandler{
-		service: service.NewNavigationService(),
+		service: service.NewNavigationService(db),
 	}
 }
 
@@ -97,15 +101,15 @@ func (h *NavigationHandler) DeleteLink(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (h *NavigationHandler) RenderIndexPage(c *gin.Context) {
-	grouped, err := h.service.RenderIndexPage()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	Resp.Succ(c, grouped)
-	// c.HTML(http.StatusOK, "index.html", gin.H{
-	// 	"groupedLinks": grouped,
-	// })
+// func (h *NavigationHandler) RenderIndexPage(c *gin.Context) {
+// 	grouped, err := h.service.RenderIndexPage()
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	Resp.Succ(c, grouped)
+// 	// c.HTML(http.StatusOK, "index.html", gin.H{
+// 	// 	"groupedLinks": grouped,
+// 	// })
 
-}
+// }

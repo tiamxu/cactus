@@ -16,34 +16,36 @@ type CreateLinkRequest struct {
 }
 
 type NavigationService struct {
+	db *models.NavigationDB
 }
 
-func NewNavigationService() *NavigationService {
-	return &NavigationService{}
+func NewNavigationService(db *models.NavigationDB) *NavigationService {
+	return &NavigationService{db: db}
 }
 
 func (s *NavigationService) GetAllLinks() ([]models.NavigationLink, error) {
-	return models.GetAllLinks()
+
+	return s.db.GetAllLinks()
 }
 
 func (s *NavigationService) GetLinkByID(id int) (models.NavigationLink, error) {
-	return models.GetLinkByID(id)
+	return s.db.GetLinkByID(id)
 }
 
 func (s *NavigationService) CreateLink(req models.CreateLinkRequest) (int, error) {
-	return models.CreateLink(req)
+	return s.db.CreateLink(req)
 }
 
 func (s *NavigationService) UpdateLink(id int, req models.UpdateLinkRequest) error {
-	return models.UpdateLink(id, req)
+	return s.db.UpdateLink(id, req)
 }
 
 func (s *NavigationService) DeleteLink(id int) error {
-	return models.DeleteLink(id)
+	return s.db.DeleteLink(id)
 }
 
 func (s *NavigationService) RenderIndexPage() ([]inout.GroupedLink, error) {
-	links, err := models.GetAllLinks()
+	links, err := s.db.GetAllLinks()
 	if err != nil {
 		return nil, err
 	}

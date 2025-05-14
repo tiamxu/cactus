@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/tiamxu/kit/sql"
 )
 
 type NavigationLink struct {
@@ -30,21 +32,27 @@ type UpdateLinkRequest struct {
 	Category    string `json:"category"`
 	Description string `json:"description"`
 }
+type NavigationDB struct {
+	*sql.DB
+}
 
-func GetAllLinks() ([]NavigationLink, error) {
+func NewNavigationDB() *NavigationDB {
+	return &NavigationDB{NewDBClient()}
+}
+func (db NavigationDB) GetAllLinks() ([]NavigationLink, error) {
 	var links []NavigationLink
-	err := DB.Select(&links, "SELECT * FROM navigation_links ORDER BY category, title")
+	err := db.Select(&links, "SELECT * FROM navigation_links ORDER BY category, title")
 	return links, err
 }
 
-func GetLinkByID(id int) (NavigationLink, error) {
+func (db NavigationDB) GetLinkByID(id int) (NavigationLink, error) {
 	var link NavigationLink
-	err := DB.Get(&link, "SELECT * FROM navigation_links WHERE id = ?", id)
+	err := db.Get(&link, "SELECT * FROM navigation_links WHERE id = ?", id)
 	return link, err
 }
 
-func CreateLink(link CreateLinkRequest) (int, error) {
-	result, err := DB.Exec(
+func (db NavigationDB) CreateLink(link CreateLinkRequest) (int, error) {
+	result, err := db.Exec(
 		"INSERT INTO navigation_links (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)",
 		link.Title, link.URL, link.Icon, link.Category, link.Description)
 	if err != nil {
@@ -55,14 +63,14 @@ func CreateLink(link CreateLinkRequest) (int, error) {
 	return int(id), err
 }
 
-func UpdateLink(id int, link UpdateLinkRequest) error {
-	_, err := DB.Exec(
+func (db NavigationDB) UpdateLink(id int, link UpdateLinkRequest) error {
+	_, err := db.Exec(
 		"UPDATE navigation_links SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?",
 		link.Title, link.URL, link.Icon, link.Category, link.Description, id)
 	return err
 }
 
-func DeleteLink(id int) error {
-	_, err := DB.Exec("DELETE FROM navigation_links WHERE id = ?", id)
+func (db NavigationDB) DeleteLink(id int) error {
+	_, err := db.Exec("DELETE FROM navigation_links WHERE id = ?", id)
 	return err
 }
