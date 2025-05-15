@@ -34,7 +34,7 @@ func Close() error {
 }
 func NewDBClient() *sql.DB {
 	if _db == nil {
-		panic("数据库连接未初始化,请先调用models.Init()")
+		panic("数据库连接未初始化")
 	}
 	return _db
 

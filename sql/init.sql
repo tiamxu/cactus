@@ -65,3 +65,25 @@ CREATE TABLE `projects` (
 
 CREATE INDEX idx_projects_name ON projects(name);
 CREATE INDEX idx_projects_status ON projects(status);
+
+
+CREATE TABLE IF NOT EXISTS navigations (
+    -- 主键ID，自增整数，唯一标识每条导航链接记录
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主键ID',
+    -- 链接显示标题，必填项，用于前端展示的链接名称
+    title VARCHAR(100) NOT NULL COMMENT '链接标题/名称',
+    -- 链接的实际URL地址，必填项，用户点击后跳转的目标地址
+    url VARCHAR(255) NOT NULL COMMENT '链接URL地址',
+    -- 链接关联的图标类名，通常用于Font Awesome等图标库
+    -- 示例: 'fa-home', 'fa-github'，可为空表示不使用图标
+    icon VARCHAR(50) COMMENT '图标CSS类名',
+    -- 链接分类，用于对导航链接进行分组管理
+    -- 示例: '开发工具'、'搜索引擎'、'社交媒体'
+    category VARCHAR(50) COMMENT '链接分类',
+    -- 链接的详细描述信息，用于鼠标悬停提示或辅助说明
+    description TEXT COMMENT '链接描述信息',
+    -- 记录创建时间，自动设置为记录插入时的时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    -- 记录最后更新时间，自动更新为记录修改时的时间戳
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间' 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='快捷导航链接表';

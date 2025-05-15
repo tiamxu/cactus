@@ -33,11 +33,11 @@ func (s *NavigationService) GetLinkByID(id int) (model.NavigationLink, error) {
 	return s.db.GetLinkByID(id)
 }
 
-func (s *NavigationService) CreateLink(req model.CreateLinkRequest) (int, error) {
+func (s *NavigationService) CreateLink(req inout.CreateLinkRequest) (int, error) {
 	return s.db.CreateLink(req)
 }
 
-func (s *NavigationService) UpdateLink(id int, req model.UpdateLinkRequest) error {
+func (s *NavigationService) UpdateLink(id int, req inout.UpdateLinkRequest) error {
 	return s.db.UpdateLink(id, req)
 }
 

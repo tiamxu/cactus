@@ -1,7 +1,9 @@
 package repo
 
 import (
+	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
+
 	"github.com/tiamxu/kit/sql"
 )
 
@@ -24,7 +26,7 @@ func (db NavigationDB) GetLinkByID(id int) (model.NavigationLink, error) {
 	return link, err
 }
 
-func (db NavigationDB) CreateLink(link model.CreateLinkRequest) (int, error) {
+func (db NavigationDB) CreateLink(link inout.CreateLinkRequest) (int, error) {
 	result, err := db.Exec(
 		"INSERT INTO navigation_links (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)",
 		link.Title, link.URL, link.Icon, link.Category, link.Description)
@@ -36,7 +38,7 @@ func (db NavigationDB) CreateLink(link model.CreateLinkRequest) (int, error) {
 	return int(id), err
 }
 
-func (db NavigationDB) UpdateLink(id int, link model.UpdateLinkRequest) error {
+func (db NavigationDB) UpdateLink(id int, link inout.UpdateLinkRequest) error {
 	_, err := db.Exec(
 		"UPDATE navigation_links SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?",
 		link.Title, link.URL, link.Icon, link.Category, link.Description, id)

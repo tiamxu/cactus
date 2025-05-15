@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tiamxu/cactus/logic/model"
+	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/repo"
 
 	"github.com/tiamxu/cactus/logic/service"
@@ -18,9 +18,6 @@ type NavigationHandler struct {
 
 func NewNavigationHandler() *NavigationHandler {
 	db := repo.NewNavigationDB()
-	// service := service.NewNavigationService(db)
-	// return &NavigationHandler{service: service}
-
 	return &NavigationHandler{
 		service: service.NewNavigationService(db),
 	}
@@ -52,7 +49,7 @@ func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
 }
 
 func (h *NavigationHandler) CreateLink(c *gin.Context) {
-	var req model.CreateLinkRequest
+	var req inout.CreateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -74,7 +71,7 @@ func (h *NavigationHandler) UpdateLink(c *gin.Context) {
 		return
 	}
 
-	var req model.UpdateLinkRequest
+	var req inout.UpdateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

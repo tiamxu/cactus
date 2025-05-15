@@ -99,3 +99,11 @@ type GroupedLink struct {
 	Category string
 	Links    []model.NavigationLink
 }
+
+type UpdateLinkRequest struct {
+	Title       string `json:"title"`
+	URL         string `json:"url" binding:"omitempty,url"`
+	Icon        string `json:"icon"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
+}
