@@ -7,6 +7,10 @@ import (
 	"github.com/tiamxu/kit/sql"
 )
 
+var (
+	NavigationTableName = " navigation_links "
+)
+
 type NavigationDB struct {
 	*sql.DB
 }
@@ -14,21 +18,34 @@ type NavigationDB struct {
 func NewNavigationDB() *NavigationDB {
 	return &NavigationDB{NewDBClient()}
 }
-func (db NavigationDB) GetAllLinks() ([]model.NavigationLink, error) {
+
+func (db NavigationDB) GetAllLinks(pageNo, pageSize int) ([]model.NavigationLink, int64, error) {
 	var links []model.NavigationLink
-	err := db.Select(&links, "SELECT * FROM navigation_links ORDER BY category, title")
-	return links, err
+	var args []interface{}
+	var total int64
+	query := "SELECT * FROM " + NavigationTableName + " ORDER BY category, title"
+	countQuery := "SELECT COUNT(*) FROM" + NavigationTableName + "WHERE 1=1"
+	err := db.Get(&total, countQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+	pageQuery := query + " LIMIT ? OFFSET ?"
+	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
+	err = db.Select(&links, pageQuery, pageArgs...)
+	return links, total, err
 }
 
 func (db NavigationDB) GetLinkByID(id int) (model.NavigationLink, error) {
 	var link model.NavigationLink
-	err := db.Get(&link, "SELECT * FROM navigation_links WHERE id = ?", id)
+	query := "SELECT * FROM " + NavigationTableName + " WHERE id = ?"
+	err := db.Get(&link, query, id)
 	return link, err
 }
 
-func (db NavigationDB) CreateLink(link inout.CreateLinkRequest) (int, error) {
+func (db NavigationDB) Create(link inout.CreateLinkRequest) (int, error) {
+	query := "INSERT INTO " + NavigationTableName + " (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)"
 	result, err := db.Exec(
-		"INSERT INTO navigation_links (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)",
+		query,
 		link.Title, link.URL, link.Icon, link.Category, link.Description)
 	if err != nil {
 		return 0, err
@@ -38,14 +55,16 @@ func (db NavigationDB) CreateLink(link inout.CreateLinkRequest) (int, error) {
 	return int(id), err
 }
 
-func (db NavigationDB) UpdateLink(id int, link inout.UpdateLinkRequest) error {
+func (db NavigationDB) UpdateNavigationWithId(id int, link inout.UpdateLinkRequest) error {
+	query := "UPDATE " + NavigationTableName + " SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?"
 	_, err := db.Exec(
-		"UPDATE navigation_links SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?",
+		query,
 		link.Title, link.URL, link.Icon, link.Category, link.Description, id)
 	return err
 }
 
-func (db NavigationDB) DeleteLink(id int) error {
-	_, err := db.Exec("DELETE FROM navigation_links WHERE id = ?", id)
+func (db NavigationDB) DeleteNavigationWithId(id int) error {
+	query := "DELETE FROM " + NavigationTableName + "WHERE id = ?"
+	_, err := db.Exec(query, id)
 	return err
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
@@ -77,7 +76,6 @@ func (r *RoleService) Update(req inout.PatchRoleReq) error {
 }
 
 func (r *RoleService) Add(params inout.AddRoleReq) error {
-	fmt.Println("###params", params)
 	err := repo.AddRoleWhereByCondition(params.Name, params.Code, params.Enable, params.PermissionIds)
 	if err != nil {
 		return nil

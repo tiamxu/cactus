@@ -59,10 +59,10 @@ func InitRoutes(r *gin.Engine) {
 	r.DELETE("/project/:id", projectHandler.List)
 	r.PUT("/project/:id/status", projectHandler.List)
 
-	r.GET("/links", linkHandler.GetAllLinks)
+	r.GET("/links", linkHandler.List)
 	// r.GET("/links", linkHandler.RenderIndexPage)
 
-	r.POST("/links", linkHandler.CreateLink)
-	r.PUT("/links/:id", linkHandler.UpdateLink)
-	r.DELETE("/links/:id", linkHandler.DeleteLink)
+	r.POST("/links", linkHandler.Add)
+	r.PUT("/links/:id", linkHandler.Update)
+	r.DELETE("/links/:id", linkHandler.Delete)
 }

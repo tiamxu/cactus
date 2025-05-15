@@ -43,3 +43,8 @@ type RoleListPageRes struct {
 	PageData []RoleListPageItem `json:"pageData"`
 	Total    int64              `json:"total"`
 }
+
+type NavListRes struct {
+	PageData []model.NavigationLink `json:"pageData"`
+	Total    int64                  `json:"total"`
+}

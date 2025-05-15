@@ -23,13 +23,17 @@ func NewNavigationHandler() *NavigationHandler {
 	}
 }
 
-func (h *NavigationHandler) GetAllLinks(c *gin.Context) {
-	links, err := h.service.GetAllLinks()
+func (h *NavigationHandler) List(c *gin.Context) {
+	var pageNoReq = c.DefaultQuery("pageNo", "1")
+	var pageSizeReq = c.DefaultQuery("pageSize", "10")
+	pageNo, _ := strconv.Atoi(pageNoReq)
+	pageSize, _ := strconv.Atoi(pageSizeReq)
+	data, err := h.service.List(pageNo, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	Resp.Succ(c, links)
+	Resp.Succ(c, data)
 }
 
 func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
@@ -48,14 +52,14 @@ func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
 	Resp.Succ(c, link)
 }
 
-func (h *NavigationHandler) CreateLink(c *gin.Context) {
+func (h *NavigationHandler) Add(c *gin.Context) {
 	var req inout.CreateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, err := h.service.CreateLink(req)
+	id, err := h.service.Add(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -64,7 +68,7 @@ func (h *NavigationHandler) CreateLink(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
-func (h *NavigationHandler) UpdateLink(c *gin.Context) {
+func (h *NavigationHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -77,7 +81,7 @@ func (h *NavigationHandler) UpdateLink(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.UpdateLink(id, req); err != nil {
+	if err := h.service.Update(id, req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -85,14 +89,14 @@ func (h *NavigationHandler) UpdateLink(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (h *NavigationHandler) DeleteLink(c *gin.Context) {
+func (h *NavigationHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	if err := h.service.DeleteLink(id); err != nil {
+	if err := h.service.Delete(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
