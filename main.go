@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tiamxu/cactus/routes"
+	"github.com/tiamxu/cactus/logic/routes"
 	"github.com/tiamxu/kit/log"
 )
 

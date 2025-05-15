@@ -1,9 +1,12 @@
-package inout
+package response
 
 import (
+	"net/http"
 	"time"
 
-	model "github.com/tiamxu/cactus/logic/model"
+	"github.com/tiamxu/cactus/logic/model"
+
+	"github.com/gin-gonic/gin"
 )
 
 type LoginRes struct {
@@ -37,9 +40,46 @@ type UserListRes struct {
 }
 type RoleListPageItem struct {
 	model.Role
-	PermissionIds []int `json:"permissionIds"`
+	PermissionIds []int64 `json:"permissionIds" gorm:"-"`
 }
 type RoleListPageRes struct {
 	PageData []RoleListPageItem `json:"pageData"`
 	Total    int64              `json:"total"`
+}
+
+// Response 基础序列化器
+type Response struct {
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
+	Msg    string      `json:"msg"`
+	Error  string      `json:"error"`
+}
+
+// DataList 带有总数的Data结构
+type DataList struct {
+	Item  interface{} `json:"item"`
+	Total uint        `json:"total"`
+}
+
+// TokenData 带有token的Data结构
+type TokenData struct {
+	User  interface{} `json:"user"`
+	Token string      `json:"token"`
+}
+
+func Success(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, Response{
+		Status: 0,
+		Data:   data,
+		Msg:    "success",
+	})
+}
+
+func Error(c *gin.Context, code int, message string) {
+	c.JSON(http.StatusOK, Response{
+		Status: code,
+		Data:   nil,
+		Msg:    message,
+		Error:  "error",
+	})
 }

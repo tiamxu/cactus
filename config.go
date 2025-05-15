@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"github.com/tiamxu/cactus/models"
+	"github.com/tiamxu/cactus/logic/repo"
 	"github.com/tiamxu/kit/log"
 	"github.com/tiamxu/kit/sql"
 
@@ -41,7 +41,7 @@ func (c *Config) Initial() (err error) {
 		log.DefaultLogger().SetLevel(level)
 	}
 
-	if err = models.Init(cfg.DB); err != nil {
+	if err = repo.Init(cfg.DB); err != nil {
 		return fmt.Errorf("database initialization failed: %w", err)
 
 	}

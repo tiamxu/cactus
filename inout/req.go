@@ -1,6 +1,6 @@
 package inout
 
-import "github.com/tiamxu/cactus/models"
+import "github.com/tiamxu/cactus/logic/model"
 
 type LoginReq struct {
 	Username string `form:"username" binding:"required"`
@@ -97,5 +97,5 @@ type CreateLinkRequest struct {
 
 type GroupedLink struct {
 	Category string
-	Links    []models.NavigationLink
+	Links    []model.NavigationLink
 }
