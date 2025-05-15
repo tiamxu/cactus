@@ -252,7 +252,7 @@ func GetRolesCountWhereByNameEnable(name string, enable string, pageNo, pageSize
 	// 添加分页条件
 	pageQuery := baseQuery + " ORDER BY id LIMIT ? OFFSET ?"
 	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
-	var roleList []*Role
+	var roleList []*model.Role
 	// // 执行分页查询
 	err = DB.Select(&roleList, pageQuery, pageArgs...)
 	if err != nil {
@@ -282,7 +282,7 @@ func GetRolesCountWhereByName(name string, pageNo, pageSize int) ([]*model.Role,
 	// 添加分页条件
 	pageQuery := baseQuery + " LIMIT ? OFFSET ?"
 	pageArgs := append(args, pageSize, (pageNo-1)*pageSize)
-	var roleList []*Role
+	var roleList []*model.Role
 	// // 执行分页查询
 	err = DB.Select(&roleList, pageQuery, pageArgs...)
 	if err != nil {
@@ -290,8 +290,8 @@ func GetRolesCountWhereByName(name string, pageNo, pageSize int) ([]*model.Role,
 	}
 	return roleList, total, nil
 }
-func GetRolesList() ([]*Role, error) {
-	var roles []*Role
+func GetRolesList() ([]*model.Role, error) {
+	var roles []*model.Role
 	err := DB.Select(&roles, "SELECT * FROM role")
 
 	if err != nil {

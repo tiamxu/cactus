@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tiamxu/cactus/service"
+	"github.com/tiamxu/cactus/logic/service"
 )
 
 type ProjectHandler struct {

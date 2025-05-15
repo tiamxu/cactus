@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"github.com/tiamxu/cactus/logic/api"
+	"net/http"
+
 	"github.com/tiamxu/cactus/utils"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,9 @@ func Jwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("Authorization")
 		if token == "" {
-			api.Resp.Err(c, 10002, "请求未携带token，无权限访问")
+			// api.Resp.Err(c, 10002, "请求未携带token，无权限访问")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "请求未携带token，无权限访问"})
+
 			c.Abort()
 			return
 		}
@@ -41,11 +44,15 @@ func Jwt() gin.HandlerFunc {
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == utils.TokenExpired {
-				api.Resp.Err(c, 10002, "授权已过期")
+				// api.Resp.Err(c, 10002, "授权已过期")
+				c.JSON(http.StatusBadRequest, gin.H{"error": "授权已过期"})
+
 				c.Abort()
 				return
 			}
-			api.Resp.Err(c, 10002, err.Error())
+			// api.Resp.Err(c, 10002, err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 			c.Abort()
 			return
 		}
