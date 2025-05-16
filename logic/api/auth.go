@@ -26,7 +26,6 @@ func (h *AuthHandler) Captcha(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("captch", code)
 	session.Save()
-	// 设置 Content-Type 为 "image/svg+xml"
 	c.Header("Content-Type", "image/svg+xml; charset=utf-8")
 	// 返回验证码
 	c.Data(http.StatusOK, "image/svg+xml", svg)

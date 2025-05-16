@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/tiamxu/cactus/utils"
@@ -56,7 +57,9 @@ func Jwt() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		fmt.Println("token:", token)
 
+		fmt.Printf("claims:%v\n", claims)
 		// 继续交由下一个路由处理,并将解析出的信息传递下去
 		c.Set("uid", claims.UID)
 		c.Next()

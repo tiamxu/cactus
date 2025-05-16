@@ -42,17 +42,17 @@ func (db NavigationDB) GetLinkByID(id int) (model.NavigationLink, error) {
 	return link, err
 }
 
-func (db NavigationDB) Create(link inout.CreateLinkRequest) (int, error) {
+func (db NavigationDB) Create(link inout.CreateLinkRequest) error {
 	query := "INSERT INTO " + NavigationTableName + " (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)"
 	result, err := db.Exec(
 		query,
 		link.Title, link.URL, link.Icon, link.Category, link.Description)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	id, err := result.LastInsertId()
-	return int(id), err
+	_, err = result.LastInsertId()
+	return err
 }
 
 func (db NavigationDB) UpdateNavigationWithId(id int, link inout.UpdateLinkRequest) error {

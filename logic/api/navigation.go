@@ -59,13 +59,13 @@ func (h *NavigationHandler) Add(c *gin.Context) {
 		return
 	}
 
-	id, err := h.service.Add(req)
+	err := h.service.Add(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": id})
+	Resp.Succ(c, "")
 }
 
 func (h *NavigationHandler) Update(c *gin.Context) {

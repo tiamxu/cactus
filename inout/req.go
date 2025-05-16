@@ -88,11 +88,11 @@ type PatchPermissionReq struct {
 }
 
 type CreateLinkRequest struct {
-	Title       string `json:"title" binding:"required" db:"title"`
-	URL         string `json:"url" binding:"required" db:"url"`
-	Icon        string `json:"icon" db:"icon"`
-	Category    string `json:"category" db:"category"`
-	Description string `json:"description" db:"description"`
+	Title       string `json:"title" binding:"required"`
+	URL         string `json:"url" binding:"required,url"`
+	Icon        string `json:"icon"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
 }
 
 type GroupedLink struct {
@@ -101,9 +101,9 @@ type GroupedLink struct {
 }
 
 type UpdateLinkRequest struct {
-	Title       string `json:"title" db:"title"`
-	URL         string `json:"url" binding:"required" db:"url"`
-	Icon        string `json:"icon" db:"icon"`
-	Category    string `json:"category" db:"category"`
-	Description string `json:"description" db:"description"`
+	Title       string `json:"title"`
+	URL         string `json:"url" binding:"omitempty,url"`
+	Icon        string `json:"icon"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
 }

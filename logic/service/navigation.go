@@ -41,7 +41,7 @@ func (s *NavigationService) GetLinkByID(id int) (model.NavigationLink, error) {
 	return s.db.GetLinkByID(id)
 }
 
-func (s *NavigationService) Add(req inout.CreateLinkRequest) (int, error) {
+func (s *NavigationService) Add(req inout.CreateLinkRequest) error {
 	return s.db.Create(req)
 }
 

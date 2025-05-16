@@ -466,7 +466,7 @@ func AddUserRolesByWhereId(userIds []int, roleId int) error {
 		return errors.New("事务开启失败")
 	}
 
-	// 5. 删除现有关联
+	// 删除现有关联
 	if len(userIds) > 0 {
 		// 构建 IN 条件
 		query, args, err := sqlx.In("DELETE FROM user_roles_role WHERE userId IN (?) AND roleId = ?", userIds, roleId)
@@ -484,7 +484,7 @@ func AddUserRolesByWhereId(userIds []int, roleId int) error {
 		}
 	}
 
-	// 6. 添加新关联
+	// 添加新关联
 	if len(userIds) > 0 {
 		// 构建批量插入语句
 		query := "INSERT INTO user_roles_role (userId, roleId) VALUES "
