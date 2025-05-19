@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	defaultSigningKey  = "cactusOps"     // 生产环境必须修改！
-	defaultExpiresIn   = time.Hour * 24  // 默认 24 小时
-	defaultRefreshTime = time.Minute * 5 // 剩余 5 分钟时刷新
+	defaultSigningKey  = "cactusOps"
+	defaultExpiresIn   = time.Hour * 2
+	defaultRefreshTime = time.Minute * 5
 )
 
 // 一些常量
@@ -23,21 +23,23 @@ var (
 	ErrSigningKeyEmpty  = errors.New("signing key is empty")
 )
 
-// CustomClaims 载荷，可以加一些自己需要的信息
 type CustomClaims struct {
 	UID int `json:"uid"`
 	jwt.RegisteredClaims
 }
 
-// JWT 签名结构
 type JWT struct {
-	SigningKey []byte `json:"signing_key"`
+	signingKey []byte
 }
 
 // NewJWT 新建一个jwt实例
 func NewJWT() *JWT {
+	key := os.Getenv("JWT_SIGNING_KEY")
+	if key == "" {
+		key = defaultSigningKey
+	}
 	return &JWT{
-		SigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
+		signingKey: []byte(key),
 	}
 }
 

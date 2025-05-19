@@ -10,24 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func JWTAuthMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		token := c.GetHeader("Authorization")
-// 		if token == "" {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未提供认证令牌"})
-// 			return
-// 		}
-// 		claims, err := utils.ParseToken(token)
-// 		if err != nil {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效的令牌"})
-// 			return
-// 		}
-
-// 		c.Set("userID", claims.UserID)
-// 		c.Next()
-// 	}
-// }
-
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
