@@ -7,7 +7,6 @@ import (
 	"github.com/tiamxu/cactus/logic/model"
 	"github.com/tiamxu/cactus/logic/repo"
 
-	"github.com/tiamxu/cactus/utils"
 	"github.com/tiamxu/kit/log"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,26 +24,26 @@ type AuthService struct {
 func NewAuthService() *AuthService {
 	return &AuthService{}
 }
-func (s *AuthService) Authenticate(username, password string) (*model.User, string, error) {
+func (s *AuthService) Authenticate(username, password string) (*model.User, error) {
 	user, err := repo.GetUserByUsername(username)
 
 	if err != nil {
 		log.Errorf("数据库查询错误: %v", err)
-		return nil, "", fmt.Errorf("用户查询失败: %w", err)
+		return nil, fmt.Errorf("用户查询失败: %w", err)
 	}
 	if user == nil {
 		log.Infoln("用户不存在")
-		return nil, "", ErrUserNotFound
+		return nil, errors.New("用户不存在")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		log.Warnf("密码验证失败: %v", err)
-		return nil, "", ErrPasswordMismatch
+		return nil, errors.New("密码错误")
 	}
 
-	token := utils.GenerateToken(user.ID)
+	// token := utils.GenerateToken(user.ID)
 
-	return user, token, nil
+	return user, nil
 }
 
 func (s *AuthService) ChangePassword(uid int, oldPwd, newPwd string) error {

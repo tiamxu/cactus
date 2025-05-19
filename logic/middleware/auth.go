@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/tiamxu/cactus/utils"
 
@@ -27,40 +28,49 @@ import (
 // 	}
 // }
 
-func Jwt() gin.HandlerFunc {
+func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("Authorization")
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未提供 Token"})
+			return
+		}
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Token 格式错误"})
+			return
+		}
+		token := parts[1]
 		if token == "" {
-			// api.Resp.Err(c, 10002, "请求未携带token，无权限访问")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "请求未携带token，无权限访问"})
-
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Token 不能为空"})
 			return
 		}
-		j := utils.NewJWT()
-		if len(token) > 7 && token[:7] == "Bearer " {
-			token = token[7:]
-		}
-		// parseToken 解析token包含的信息
-		claims, err := j.ParseToken(token)
+
+		claims, err := utils.NewJWT().ParseToken(token)
+
 		if err != nil {
-			if err == utils.TokenExpired {
-				// api.Resp.Err(c, 10002, "授权已过期")
-				c.JSON(http.StatusBadRequest, gin.H{"error": "授权已过期"})
-
-				c.Abort()
-				return
+			switch err {
+			case utils.ErrTokenExpired:
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token 已过期"})
+			case utils.ErrTokenMalformed:
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Malformed token"})
+			default:
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "解析token失败"})
 			}
-			// api.Resp.Err(c, 10002, err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-
-			c.Abort()
 			return
 		}
-		fmt.Println("token:", token)
+		if claims.UID <= 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效的用户ID"})
+			return
+		}
 
-		fmt.Printf("claims:%v\n", claims)
-		// 继续交由下一个路由处理,并将解析出的信息传递下去
+		if time.Until(claims.ExpiresAt.Time) < 5*time.Minute {
+			newToken, err := utils.NewJWT().RefreshToken(token)
+			if err == nil {
+				c.Header("New-Token", newToken) // 返回新 Token 给客户端
+			}
+		}
+
 		c.Set("uid", claims.UID)
 		c.Next()
 	}

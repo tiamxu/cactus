@@ -31,7 +31,7 @@ func InitRoutes(r *gin.Engine) {
 
 	// ================== 受保护路由（需 JWT 鉴权） ==================
 	api := r.Group("")
-	api.Use(middleware.Jwt()) // 应用 JWT 中间件
+	api.Use(middleware.JWTAuthMiddleware()) // 应用 JWT 中间件
 	{
 		// 认证相关
 		auth := api.Group("/auth")

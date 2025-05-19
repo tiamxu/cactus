@@ -34,25 +34,27 @@ func (h *AuthHandler) Captcha(c *gin.Context) {
 // 登陆
 func (h *AuthHandler) Login(c *gin.Context) {
 	var params inout.LoginReq
-	err := c.Bind(&params)
-	if err != nil {
-		Resp.Err(c, 20001, err.Error())
+	if err := c.Bind(&params); err != nil {
+		Resp.Err(c, 400, "请求参数错误")
 		return
 	}
 	session := sessions.Default(c)
 	if params.Captcha != session.Get("captch") {
-		Resp.Err(c, 20001, "验证码不正确")
+		Resp.Err(c, 400, "验证码不正确")
 		return
 	}
 
-	user, _, err := h.authService.Authenticate(params.Username, params.Password)
+	user, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
-		Resp.Err(c, 20001, "账号或密码不正确")
+		Resp.Err(c, 401, err.Error())
 		return
 	}
-	Resp.Succ(c, inout.LoginRes{
-		AccessToken: utils.GenerateToken(user.ID),
-	})
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		Resp.Err(c, 500, "生成 Token 失败")
+		return
+	}
+	Resp.Succ(c, inout.LoginRes{AccessToken: token})
 
 }
 
