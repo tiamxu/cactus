@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/service"
-	"github.com/tiamxu/cactus/utils"
+	"github.com/tiamxu/cactus/pkg/utils"
 )
 
 type AuthHandler struct {

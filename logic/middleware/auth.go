@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tiamxu/cactus/utils"
+	"github.com/tiamxu/cactus/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )

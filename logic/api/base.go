@@ -18,10 +18,10 @@ type rps struct {
 
 func (rps) Succ(c *gin.Context, data interface{}) {
 	resp := rps{
-		Code:      0,
-		Message:   "OK",
-		Data:      data,
-		OriginUrl: c.Request.URL.Path,
+		Code:    0,
+		Message: "OK",
+		Data:    data,
+		// OriginUrl: c.Request.URL.Path,
 	}
 	c.Set("succ_response", resp)
 	c.JSON(http.StatusOK, resp)
