@@ -8,6 +8,7 @@ import (
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/service"
 	"github.com/tiamxu/cactus/pkg/utils"
+	"github.com/tiamxu/cactus/types"
 )
 
 type AuthHandler struct {
@@ -27,7 +28,6 @@ func (h *AuthHandler) Captcha(c *gin.Context) {
 	session.Set("captch", code)
 	session.Save()
 	c.Header("Content-Type", "image/svg+xml; charset=utf-8")
-	// 返回验证码
 	c.Data(http.StatusOK, "image/svg+xml", svg)
 }
 
@@ -44,17 +44,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.Authenticate(params.Username, params.Password)
+	resp, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
 		Resp.Err(c, 401, err.Error())
 		return
 	}
-	token, err := utils.GenerateToken(user.ID)
-	if err != nil {
-		Resp.Err(c, 500, "生成 Token 失败")
-		return
-	}
-	Resp.Succ(c, inout.LoginRes{AccessToken: token})
+	// token, err := utils.GenerateToken(user.ID)
+	// if err != nil {
+	// 	Resp.Err(c, 500, "生成 Token 失败")
+	// 	return
+	// }
+	// Resp.Succ(c, inout.LoginRes{
+	// 	AccessToken: utils.GenerateToken(user.ID),
+	// })
+	c.JSON(http.StatusOK, types.RespSuccess(c, resp))
 
 }
 

@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tiamxu/cactus/logic/model"
 	"github.com/tiamxu/cactus/logic/repo"
+	"github.com/tiamxu/cactus/pkg/utils"
+	"github.com/tiamxu/cactus/types"
 
 	"github.com/tiamxu/kit/log"
 
@@ -24,16 +25,15 @@ type AuthService struct {
 func NewAuthService() *AuthService {
 	return &AuthService{}
 }
-func (s *AuthService) Authenticate(username, password string) (*model.User, error) {
-	user, err := repo.GetUserByUsername(username)
-
+func (s *AuthService) Authenticate(username, password string) (resp interface{}, err error) {
+	user, exist, err := repo.ExistOrNotByUserName(username)
+	if !exist {
+		log.Errorf("用户不存在: %v", err)
+		return nil, errors.New("用户不存在")
+	}
 	if err != nil {
 		log.Errorf("数据库查询错误: %v", err)
 		return nil, fmt.Errorf("用户查询失败: %w", err)
-	}
-	if user == nil {
-		log.Infoln("用户不存在")
-		return nil, errors.New("用户不存在")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
@@ -41,9 +41,17 @@ func (s *AuthService) Authenticate(username, password string) (*model.User, erro
 		return nil, errors.New("密码错误")
 	}
 
-	// token := utils.GenerateToken(user.ID)
+	accessToken, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		log.Warnf("token失败: %v", err)
+		return nil, errors.New("token错误")
 
-	return user, nil
+	}
+	resp = &types.LoginRes{
+
+		AccessToken: accessToken,
+	}
+	return
 }
 
 func (s *AuthService) ChangePassword(uid int, oldPwd, newPwd string) error {

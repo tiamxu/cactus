@@ -1,0 +1,48 @@
+package types
+
+import (
+	"time"
+
+	model "github.com/tiamxu/cactus/logic/model"
+)
+
+type LoginRes struct {
+	AccessToken string `json:"accessToken"`
+}
+type UserTokenData struct {
+	User        interface{} `json:"user"`
+	AccessToken string      `json:"access_token"`
+}
+type UserDetailRes struct {
+	model.User
+	Profile     *model.Profile `json:"profile"`
+	Roles       []*model.Role  `json:"roles" `
+	CurrentRole *model.Role    `json:"currentRole"`
+}
+
+type RoleListRes []*model.Role
+
+type UserListItem struct {
+	ID         int           `json:"id"`
+	Username   string        `json:"username"`
+	Enable     bool          `json:"enable"`
+	CreateTime time.Time     `json:"createTime"`
+	UpdateTime time.Time     `json:"updateTime"`
+	Gender     int           `json:"gender"`
+	Avatar     string        `json:"avatar"`
+	Address    string        `json:"address"`
+	Email      string        `json:"email"`
+	Roles      []*model.Role `json:"roles"`
+}
+type UserListRes struct {
+	PageData []UserListItem `json:"pageData"`
+	Total    int64          `json:"total"`
+}
+type RoleListPageItem struct {
+	model.Role
+	PermissionIds []int `json:"permissionIds"`
+}
+type RoleListPageRes struct {
+	PageData []RoleListPageItem `json:"pageData"`
+	Total    int64              `json:"total"`
+}

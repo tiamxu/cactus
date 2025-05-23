@@ -12,32 +12,33 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// 数据库操作方法
-func GetUserByUsername(username string) (*model.User, error) {
-	query := `
-		SELECT 
-			id, username, password, enable
-		FROM user 
-		WHERE username = ?
-		LIMIT 1`
+// ExistOrNotByUserName 根据username判断是否存在该名字
+func ExistOrNotByUserName(username string) (user *model.User, exist bool, err error) {
+	user = &model.User{}
+	query := `SELECT id, username, password, enable FROM user WHERE username = ? LIMIT 1`
 
-	var user model.User
-	err := DB.Get(&user, query, username)
-	if err == sql.ErrNoRows {
-		return nil, nil
+	err = DB.Get(user, query, username)
+	// fmt.Printf("err=%v, user=%+v\n", err, user)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, false, nil
+		}
+		return nil, false, err
 	}
-	return &user, err
+
+	return user, true, err
 }
 
 // 查询用户信息
-func GetUserByID(id int) (*model.User, error) {
+func GetUserByID(id int) (user *model.User, err error) {
 	query := `
         SELECT id, username, password, enable, createTime, updateTime 
         FROM user 
         WHERE id = ?`
 
-	user := &model.User{}
-	err := DB.Get(user, query, id)
+	user = &model.User{}
+	err = DB.Get(user, query, id)
 	if err != nil {
 		return nil, err
 	}

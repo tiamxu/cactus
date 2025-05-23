@@ -2,12 +2,16 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/tiamxu/cactus/conf"
 	"github.com/tiamxu/cactus/logic/routes"
+
 	"github.com/tiamxu/kit/log"
 )
 
+var cfg *conf.Config
+
 func init() {
-	loadConfig()
+	conf.LoadConfig()
 	if err := cfg.Initial(); err != nil {
 		log.Fatalf("Config initialization failed: %v", err)
 	}
