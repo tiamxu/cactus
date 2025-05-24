@@ -1,4 +1,4 @@
-package main
+package conf
 
 import (
 	"fmt"
@@ -36,21 +36,20 @@ func (c *Config) Initial() (err error) {
 	}()
 	//日志
 	if level, err := logrus.ParseLevel(c.LogLevel); err != nil {
-		return err
+		return fmt.Errorf("invalid log level: %w", err)
 	} else {
 		log.DefaultLogger().SetLevel(level)
 	}
 
-	if err = repo.Init(cfg.DB); err != nil {
-		return fmt.Errorf("database initialization failed: %w", err)
-
+	if err = repo.Init(c.DB); err != nil {
+		return fmt.Errorf("database init failed: %w", err)
 	}
 
 	return nil
 }
 
 // 读取配置文件
-func loadConfig() {
+func LoadConfig() *Config {
 	cfg = new(Config)
 
 	// env := os.Getenv("ENV")
@@ -68,4 +67,5 @@ func loadConfig() {
 	}
 
 	multiconfig.MustLoadWithPath(configPath, cfg)
+	return cfg
 }

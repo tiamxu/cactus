@@ -20,8 +20,9 @@ type DataListResp struct {
 type Response struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Data    interface{} `json:"data"`
+	Error   string      `json:"error"`
+	Meta    interface{} `json:"meta,omitempty"`
 	// OriginUrl string      `json:"originUrl"`
 }
 
