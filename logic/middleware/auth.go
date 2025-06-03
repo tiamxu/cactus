@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -54,6 +55,27 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("uid", claims.UID)
+		c.Next()
+	}
+}
+
+func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+		defer cancel()
+
+		// 监听Context是否被取消
+		go func() {
+			<-ctx.Done()
+			if ctx.Err() == context.DeadlineExceeded {
+				c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+					"error": "request timeout",
+					"code":  "TIMEOUT",
+				})
+			}
+		}()
+
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

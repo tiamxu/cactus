@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/tiamxu/cactus/logic/api"
@@ -10,6 +12,7 @@ import (
 )
 
 func InitRoutes(r *gin.Engine) {
+	r.Use(middleware.TimeoutMiddleware(30 * time.Second))
 	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte("captch"))))
 
 	authHandler := api.NewAuthHandler()
@@ -18,12 +21,11 @@ func InitRoutes(r *gin.Engine) {
 	permissionHandler := api.NewPermissionsHandler()
 	projectHandler := api.NewProjectHandler()
 	linkHandler := api.NewNavigationHandler()
-	// r.Static("/static", "./static")
-	// r.LoadHTMLGlob("static/templates/*")
-	// r.GET("/links", linkHandler.RenderIndexPage)
 
 	// ================== 开放路由（无需鉴权） ==================
 	auth := r.Group("/auth")
+	auth.Use(middleware.TimeoutMiddleware(10 * time.Second))
+
 	{
 		auth.POST("/login", authHandler.Login)    // 登录
 		auth.GET("/captcha", authHandler.Captcha) // 验证码
@@ -42,6 +44,7 @@ func InitRoutes(r *gin.Engine) {
 
 		// 用户管理
 		user := api.Group("/user")
+		api.Use(middleware.TimeoutMiddleware(15 * time.Second))
 		{
 			user.GET("", userHandler.List)                        // 用户列表
 			user.POST("", userHandler.Add)                        // 新增用户

@@ -24,11 +24,13 @@ func NewNavigationHandler() *NavigationHandler {
 }
 
 func (h *NavigationHandler) List(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var pageNoReq = c.DefaultQuery("pageNo", "1")
 	var pageSizeReq = c.DefaultQuery("pageSize", "10")
 	pageNo, _ := strconv.Atoi(pageNoReq)
 	pageSize, _ := strconv.Atoi(pageSizeReq)
-	data, err := h.service.List(pageNo, pageSize)
+	data, err := h.service.List(ctx, pageNo, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -37,13 +39,15 @@ func (h *NavigationHandler) List(c *gin.Context) {
 }
 
 func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	link, err := h.service.GetLinkByID(id)
+	link, err := h.service.GetLinkByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "link not found"})
 		return
@@ -53,13 +57,15 @@ func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
 }
 
 func (h *NavigationHandler) Add(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var req inout.CreateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := h.service.Add(req)
+	err := h.service.Add(ctx, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -69,6 +75,8 @@ func (h *NavigationHandler) Add(c *gin.Context) {
 }
 
 func (h *NavigationHandler) Update(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -81,7 +89,7 @@ func (h *NavigationHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Update(id, req); err != nil {
+	if err := h.service.Update(ctx, id, req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -90,13 +98,15 @@ func (h *NavigationHandler) Update(c *gin.Context) {
 }
 
 func (h *NavigationHandler) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	if err := h.service.Delete(id); err != nil {
+	if err := h.service.Delete(ctx, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

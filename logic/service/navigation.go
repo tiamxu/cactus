@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/tiamxu/cactus/inout"
@@ -24,33 +25,33 @@ func NewNavigationService(db *repo.NavigationDB) *NavigationService {
 	return &NavigationService{db: db}
 }
 
-func (s *NavigationService) List(pageNo, pageSize int) (*inout.NavListRes, error) {
-	var data = inout.NavListRes{
-		PageData: make([]model.NavigationLink, 0),
-	}
-	navs, total, err := s.db.GetAllLinks(pageNo, pageSize)
+func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*inout.NavListRes, error) {
+
+	links, total, err := s.db.GetAllLinks(ctx, pageNo, pageSize)
 	if err != nil {
-		return nil, errors.New("查询角色信息失败")
+		return nil, errors.New("查询导航链接信息失败")
 	}
-	data.Total = total
-	data.PageData = navs
-	return &data, nil
+
+	return &inout.NavListRes{
+		Total:    total,
+		PageData: links,
+	}, nil
 }
 
-func (s *NavigationService) GetLinkByID(id int) (model.NavigationLink, error) {
-	return s.db.GetLinkByID(id)
+func (s *NavigationService) GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
+	return s.db.GetLinkByID(ctx, id)
 }
 
-func (s *NavigationService) Add(req inout.CreateLinkRequest) error {
-	return s.db.Create(req)
+func (s *NavigationService) Add(ctx context.Context, req inout.CreateLinkRequest) error {
+	return s.db.Create(ctx, req)
 }
 
-func (s *NavigationService) Update(id int, req inout.UpdateLinkRequest) error {
-	return s.db.UpdateNavigationWithId(id, req)
+func (s *NavigationService) Update(ctx context.Context, id int, req inout.UpdateLinkRequest) error {
+	return s.db.UpdateNavigationWithId(ctx, id, req)
 }
 
-func (s *NavigationService) Delete(id int) error {
-	return s.db.DeleteNavigationWithId(id)
+func (s *NavigationService) Delete(ctx context.Context, id int) error {
+	return s.db.DeleteNavigationWithId(ctx, id)
 }
 
 // func (s *NavigationService) RenderIndexPage() ([]inout.GroupedLink, error) {
