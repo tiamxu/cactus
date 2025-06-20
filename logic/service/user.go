@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
 	"github.com/tiamxu/cactus/logic/repo"
+	"github.com/tiamxu/cactus/types"
 )
 
 // 定义业务错误
@@ -35,8 +35,8 @@ type UserService struct {
 func NewUserService() *UserService {
 	return &UserService{}
 }
-func (u *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
-	var res inout.UserDetailRes
+func (u *UserService) GetUserDetail(userId int) (*types.UserDetailRes, error) {
+	var res types.UserDetailRes
 
 	// 查询用户信息
 	user, err := repo.GetUserByID(userId)
@@ -85,9 +85,9 @@ func (u *UserService) GetUserDetail(userId int) (*inout.UserDetailRes, error) {
 	return &res, nil
 }
 
-func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageSize int) (*inout.UserListRes, error) {
-	var data = inout.UserListRes{
-		PageData: make([]inout.UserListItem, 0),
+func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageSize int) (*types.UserListRes, error) {
+	var data = types.UserListRes{
+		PageData: make([]types.UserListItem, 0),
 	}
 	profiles, total, err := repo.GetProfilesByCondition(gender, enable, username, pageNo, pageSize)
 	if err != nil {
@@ -106,7 +106,7 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 			return nil, errors.New("查询用户角色失败")
 		}
 		// 组装返回数据
-		data.PageData = append(data.PageData, inout.UserListItem{
+		data.PageData = append(data.PageData, types.UserListItem{
 			ID:         uinfo.ID,
 			Username:   uinfo.Username,
 			Enable:     uinfo.Enable,
@@ -124,7 +124,7 @@ func (u *UserService) GetUserList(gender, enable, username string, pageNo, pageS
 	return &data, nil
 }
 
-func (u *UserService) UpdateProfile(params inout.PatchProfileUserReq) error {
+func (u *UserService) UpdateProfile(params types.PatchProfileUserReq) error {
 	a := model.Profile{
 		ID:       params.Id,
 		Gender:   params.Gender,
@@ -138,14 +138,14 @@ func (u *UserService) UpdateProfile(params inout.PatchProfileUserReq) error {
 	}
 	return nil
 }
-func (u *UserService) Update(params inout.PatchUserReq) error {
+func (u *UserService) Update(params types.PatchUserReq) error {
 	err := repo.UpdateUserByWhere(params.Id, params.Username, params.Password, params.Enable, params.RoleIds)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (u *UserService) Add(params inout.AddUserReq) error {
+func (u *UserService) Add(params types.AddUserReq) error {
 	err := repo.AddUserByWhere(params.Username, params.Password, params.Enable, params.RoleIds)
 	if err != nil {
 		return err
@@ -181,64 +181,11 @@ func (s *UserService) GetByID(id uint) (*User, error) {
 	}, nil
 }
 
-// Create 创建用户（带业务校验）
-// func (s *UserService) Create(req *CreateUserRequest) error {
-// 	// 参数校验
-// 	if req.Username == "" || req.Password == "" {
-// 		return ErrInvalidRequest
-// 	}
-// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// 检查用户名唯一性
-// 	exists, err := models.ExistsByUsername(req.Username)
-// 	if err != nil {
-// 		return fmt.Errorf("数据库查询失败: %v", err)
-// 	}
-// 	if exists {
-// 		return fmt.Errorf("用户名 %s 已存在", req.Username)
-// 	}
-
-// 	user := &models.User{
-// 		Username: req.Username,
-// 		Password: string(hashedPassword),
-// 	}
-
-// 	return models.Create(user)
-// }
-
 type UpdateUserRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Status   int    `json:"status"`
 }
-
-// func (s *UserService) Update(id uint, req *UpdateUserRequest) (*models.User, error) {
-// 	user, err := models.GetByID(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("用户不存在")
-// 	}
-
-// 	// 更新字段
-// 	if req.Username != "" && req.Username != user.Username {
-// 		exists, err := models.ExistsByUsername(req.Username)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("数据库查询失败: %v", err)
-// 		}
-// 		if exists {
-// 			return nil, fmt.Errorf("用户名 %s 已存在", req.Username)
-// 		}
-// 		user.Username = req.Username
-// 	}
-
-// 	if err := models.Update(user); err != nil {
-// 		return nil, fmt.Errorf("更新失败: %v", err)
-// 	}
-// 	return user, nil
-// }
-
-// Delete 删除用户（业务校验）
 
 // 根据用户ID查找对应的profile
 func findProfileByUserId(profiles []model.Profile, userId int) *model.Profile {

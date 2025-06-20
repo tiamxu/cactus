@@ -3,19 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
 	"github.com/tiamxu/cactus/logic/repo"
+	"github.com/tiamxu/cactus/types"
 )
-
-type CreateLinkRequest struct {
-	Title       string `json:"title" binding:"required"`
-	URL         string `json:"url" binding:"required,url"`
-	Icon        string `json:"icon"`
-	Category    string `json:"category"`
-	Description string `json:"description"`
-}
 
 type NavigationService struct {
 }
@@ -24,60 +17,48 @@ func NewNavigationService() *NavigationService {
 	return &NavigationService{}
 }
 
-func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*inout.NavListRes, error) {
+func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*types.DataListResp, error) {
 
 	links, total, err := repo.GetAllLinks(ctx, pageNo, pageSize)
 	if err != nil {
 		return nil, errors.New("查询导航链接信息失败")
 	}
 
-	return &inout.NavListRes{
+	return &types.DataListResp{
 		Total:    total,
 		PageData: links,
 	}, nil
 }
 
-func (s *NavigationService) GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
+func (s *NavigationService) GetLinkByID(ctx context.Context, id int) (*model.NavigationLink, error) {
 	return repo.GetLinkByID(ctx, id)
 }
 
-func (s *NavigationService) Add(ctx context.Context, req inout.CreateLinkRequest) error {
-	return repo.InsertLink(ctx, req)
+func (s *NavigationService) Add(ctx context.Context, req *types.NavigationCreateReq) error {
+	nav := &model.NavigationLink{
+		Title:       req.Title,
+		URL:         req.URL,
+		Icon:        req.Icon,
+		Category:    req.Category,
+		Description: req.Description,
+	}
+	return repo.InsertLink(ctx, nav)
 }
 
-func (s *NavigationService) Update(ctx context.Context, id int, req inout.UpdateLinkRequest) error {
-	return repo.UpdateNavigationWithId(ctx, id, req)
+func (s *NavigationService) Update(ctx context.Context, id int, req *types.NavigationUpdateReq) error {
+	nav, err := repo.GetLinkByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("nav信息不存在")
+	}
+
+	nav.Title = req.Title
+	nav.Icon = req.Icon
+	nav.Description = req.Description
+	nav.Category = req.Category
+
+	return repo.UpdateNavigationWithId(ctx, id, nav)
 }
 
 func (s *NavigationService) Delete(ctx context.Context, id int) error {
 	return repo.DeleteNavigationWithId(ctx, id)
 }
-
-// func (s *NavigationService) RenderIndexPage() ([]inout.GroupedLink, error) {
-// 	links, err := s.db.GetAllLinks()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	groups := make(map[string][]model.NavigationLink)
-// 	// 先按category分组
-// 	for _, link := range links {
-// 		category := link.Category
-// 		if category == "" {
-// 			category = "未分类"
-// 		}
-// 		groups[category] = append(groups[category], link)
-// 	}
-// 	// 转换为切片并排序
-// 	var result []inout.GroupedLink
-// 	for category, links := range groups {
-// 		result = append(result, inout.GroupedLink{
-// 			Category: category,
-// 			Links:    links,
-// 		})
-// 	}
-// 	// 按category名称排序
-// 	sort.Slice(result, func(i, j int) bool {
-// 		return result[i].Category < result[j].Category
-// 	})
-// 	return result, nil
-// }

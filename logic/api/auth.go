@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/service"
 	"github.com/tiamxu/cactus/pkg/utils"
+	"github.com/tiamxu/cactus/types"
 )
 
 type AuthHandler struct {
@@ -32,7 +32,7 @@ func (h *AuthHandler) Captcha(c *gin.Context) {
 
 // 登陆
 func (h *AuthHandler) Login(c *gin.Context) {
-	var params inout.LoginReq
+	var params types.LoginReq
 	if err := c.Bind(&params); err != nil {
 		c.JSON(http.StatusBadRequest, RespError(c, err, "请求参数错误"))
 		return
@@ -45,7 +45,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	resp, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
-		Resp.Err(c, 401, err.Error())
 		c.JSON(401, RespError(c, err, "认证失败"))
 
 		return
@@ -56,7 +55,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Password(c *gin.Context) {
-	var req inout.AuthPwReq
+	var req types.AuthPwReq
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))

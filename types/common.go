@@ -13,7 +13,7 @@ type BasePage struct {
 // DataListResp 带有总数的Data结构
 
 type DataListResp struct {
-	PageData interface{} `json:"PageData"`
+	PageData interface{} `json:"pageData"`
 	Total    int64       `json:"total"`
 }
 

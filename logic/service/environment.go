@@ -51,7 +51,7 @@ func (s *EnvironmentService) Get(ctx context.Context, id int) (*model.Environmen
 }
 
 // ListEnvironments 获取环境列表
-func (s *EnvironmentService) List(ctx context.Context, req *types.EnvironmentListReq) (*types.EnvironmentListRes, error) {
+func (s *EnvironmentService) List(ctx context.Context, req *types.EnvironmentListReq) (*types.DataListResp, error) {
 	var status *int
 	if req.Status != nil {
 		s := *req.Status
@@ -63,7 +63,7 @@ func (s *EnvironmentService) List(ctx context.Context, req *types.EnvironmentLis
 		return nil, fmt.Errorf("查询环境列表失败: %v", err)
 	}
 
-	return &types.EnvironmentListRes{
+	return &types.DataListResp{
 		PageData: envs,
 		Total:    total,
 	}, nil

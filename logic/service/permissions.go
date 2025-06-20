@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
 	"github.com/tiamxu/cactus/logic/repo"
+	"github.com/tiamxu/cactus/types"
 )
 
 type PermissionsService struct {
@@ -24,9 +24,9 @@ func (p *PermissionsService) List() ([]model.Permission, error) {
 	return data, nil
 }
 
-func (p *PermissionsService) ListPage(username string, pageNo, pageSize int) (*inout.RoleListPageRes, error) {
-	var data = inout.RoleListPageRes{
-		PageData: make([]inout.RoleListPageItem, 0),
+func (p *PermissionsService) ListPage(username string, pageNo, pageSize int) (*types.RoleListPageRes, error) {
+	var data = types.RoleListPageRes{
+		PageData: make([]types.RoleListPageItem, 0),
 	}
 	roles, total, err := repo.GetRolesCountWhereByName(username, pageNo, pageSize)
 	if err != nil {
@@ -37,14 +37,14 @@ func (p *PermissionsService) ListPage(username string, pageNo, pageSize int) (*i
 		return &data, nil
 	}
 	//预分配足够容量的切片
-	data.PageData = make([]inout.RoleListPageItem, len(roles))
+	data.PageData = make([]types.RoleListPageItem, len(roles))
 
 	for i, role := range roles {
 		perIdList, err := repo.GetPermissionsIdsByWhere(role.ID)
 		if err != nil {
 			return nil, err
 		}
-		data.PageData[i] = inout.RoleListPageItem{
+		data.PageData[i] = types.RoleListPageItem{
 			Role:          *role,
 			PermissionIds: perIdList,
 		}
@@ -54,7 +54,7 @@ func (p *PermissionsService) ListPage(username string, pageNo, pageSize int) (*i
 
 }
 
-func (p *PermissionsService) Add(params inout.AddPermissionReq) error {
+func (p *PermissionsService) Add(params types.AddPermissionReq) error {
 	perm := model.Permission{
 		Name:      params.Name,
 		Code:      params.Code,
@@ -87,7 +87,7 @@ func (p *PermissionsService) Delete(id string) error {
 	return nil
 }
 
-func (p *PermissionsService) PatchPermission(params inout.PatchPermissionReq) error {
+func (p *PermissionsService) PatchPermission(params types.PatchPermissionReq) error {
 	perm := model.Permission{
 		ID:        params.Id,
 		Name:      params.Name,

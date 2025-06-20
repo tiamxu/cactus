@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tiamxu/cactus/inout"
+	"github.com/tiamxu/cactus/types"
 
 	"github.com/tiamxu/cactus/logic/service"
 )
@@ -60,15 +60,17 @@ func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
 func (h *NavigationHandler) Add(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var req inout.CreateLinkRequest
+	var req types.NavigationCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, RespError(c, err, ""))
+
 		return
 	}
 
-	err := h.service.Add(ctx, req)
+	err := h.service.Add(ctx, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, RespError(c, err, ""))
+
 		return
 	}
 
@@ -81,22 +83,25 @@ func (h *NavigationHandler) Update(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, RespError(c, err, "invalid id"))
+
 		return
 	}
 
-	var req inout.UpdateLinkRequest
+	var req types.NavigationUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, RespError(c, err, ""))
+
 		return
 	}
 
-	if err := h.service.Update(ctx, id, req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.service.Update(ctx, id, &req); err != nil {
+		c.JSON(http.StatusInternalServerError, RespError(c, err, ""))
+
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, RespSuccess(c, ""))
 }
 
 func (h *NavigationHandler) Delete(c *gin.Context) {
@@ -104,27 +109,17 @@ func (h *NavigationHandler) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, RespError(c, err, "invalid id"))
+
 		return
 	}
 
 	if err := h.service.Delete(ctx, id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, RespError(c, err, ""))
+
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, RespSuccess(c, ""))
+
 }
-
-// func (h *NavigationHandler) RenderIndexPage(c *gin.Context) {
-// 	grouped, err := h.service.RenderIndexPage()
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	Resp.Succ(c, grouped)
-// 	// c.HTML(http.StatusOK, "index.html", gin.H{
-// 	// 	"groupedLinks": grouped,
-// 	// })
-
-// }

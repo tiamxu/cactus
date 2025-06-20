@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 
-	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/model"
 
 	"github.com/tiamxu/kit/sql"
@@ -40,14 +39,14 @@ func GetAllLinks(ctx context.Context, pageNo, pageSize int) ([]model.NavigationL
 	return links, total, nil
 }
 
-func GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
+func GetLinkByID(ctx context.Context, id int) (*model.NavigationLink, error) {
 	var link model.NavigationLink
 	query := "SELECT * FROM " + NavigationTableName + " WHERE id = ?"
 	err := DB.GetContext(ctx, &link, query, id)
-	return link, err
+	return &link, err
 }
 
-func InsertLink(ctx context.Context, link inout.CreateLinkRequest) error {
+func InsertLink(ctx context.Context, link *model.NavigationLink) error {
 	query := "INSERT INTO " + NavigationTableName +
 		" (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)"
 	result, err := DB.ExecContext(ctx,
@@ -61,7 +60,7 @@ func InsertLink(ctx context.Context, link inout.CreateLinkRequest) error {
 	return err
 }
 
-func UpdateNavigationWithId(ctx context.Context, id int, link inout.UpdateLinkRequest) error {
+func UpdateNavigationWithId(ctx context.Context, id int, link *model.NavigationLink) error {
 	query := "UPDATE " + NavigationTableName +
 		" SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?"
 	_, err := DB.ExecContext(ctx,
