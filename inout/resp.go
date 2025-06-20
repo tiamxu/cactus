@@ -48,3 +48,8 @@ type NavListRes struct {
 	PageData []model.NavigationLink `json:"pageData"`
 	Total    int64                  `json:"total"`
 }
+
+type EnvironmentListRes struct {
+	PageData []*model.Environment `json:"pageData"`
+	Total    int64                `json:"total"`
+}

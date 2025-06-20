@@ -18,16 +18,15 @@ type CreateLinkRequest struct {
 }
 
 type NavigationService struct {
-	db *repo.NavigationDB
 }
 
-func NewNavigationService(db *repo.NavigationDB) *NavigationService {
-	return &NavigationService{db: db}
+func NewNavigationService() *NavigationService {
+	return &NavigationService{}
 }
 
 func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*inout.NavListRes, error) {
 
-	links, total, err := s.db.GetAllLinks(ctx, pageNo, pageSize)
+	links, total, err := repo.GetAllLinks(ctx, pageNo, pageSize)
 	if err != nil {
 		return nil, errors.New("查询导航链接信息失败")
 	}
@@ -39,19 +38,19 @@ func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*in
 }
 
 func (s *NavigationService) GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
-	return s.db.GetLinkByID(ctx, id)
+	return repo.GetLinkByID(ctx, id)
 }
 
 func (s *NavigationService) Add(ctx context.Context, req inout.CreateLinkRequest) error {
-	return s.db.Create(ctx, req)
+	return repo.InsertLink(ctx, req)
 }
 
 func (s *NavigationService) Update(ctx context.Context, id int, req inout.UpdateLinkRequest) error {
-	return s.db.UpdateNavigationWithId(ctx, id, req)
+	return repo.UpdateNavigationWithId(ctx, id, req)
 }
 
 func (s *NavigationService) Delete(ctx context.Context, id int) error {
-	return s.db.DeleteNavigationWithId(ctx, id)
+	return repo.DeleteNavigationWithId(ctx, id)
 }
 
 // func (s *NavigationService) RenderIndexPage() ([]inout.GroupedLink, error) {

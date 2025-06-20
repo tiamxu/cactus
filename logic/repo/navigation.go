@@ -21,36 +21,36 @@ func NewNavigationDB() *NavigationDB {
 	return &NavigationDB{NewDBClient()}
 }
 
-func (db NavigationDB) GetAllLinks(ctx context.Context, pageNo, pageSize int) ([]model.NavigationLink, int64, error) {
+func GetAllLinks(ctx context.Context, pageNo, pageSize int) ([]model.NavigationLink, int64, error) {
 	var links []model.NavigationLink
 	var total int64
 
 	countQuery := "SELECT COUNT(*) FROM " + NavigationTableName + " WHERE 1=1"
-	err := db.GetContext(ctx, &total, countQuery)
+	err := DB.GetContext(ctx, &total, countQuery)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	query := "SELECT * FROM " + NavigationTableName + " ORDER BY category, title LIMIT ? OFFSET ?"
 	offset := (pageNo - 1) * pageSize
-	err = db.Select(&links, query, pageSize, offset)
+	err = DB.Select(&links, query, pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
 	return links, total, nil
 }
 
-func (db NavigationDB) GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
+func GetLinkByID(ctx context.Context, id int) (model.NavigationLink, error) {
 	var link model.NavigationLink
 	query := "SELECT * FROM " + NavigationTableName + " WHERE id = ?"
-	err := db.GetContext(ctx, &link, query, id)
+	err := DB.GetContext(ctx, &link, query, id)
 	return link, err
 }
 
-func (db NavigationDB) Create(ctx context.Context, link inout.CreateLinkRequest) error {
+func InsertLink(ctx context.Context, link inout.CreateLinkRequest) error {
 	query := "INSERT INTO " + NavigationTableName +
 		" (title, url, icon, category, description) VALUES (?, ?, ?, ?, ?)"
-	result, err := db.ExecContext(ctx,
+	result, err := DB.ExecContext(ctx,
 		query,
 		link.Title, link.URL, link.Icon, link.Category, link.Description)
 	if err != nil {
@@ -61,17 +61,17 @@ func (db NavigationDB) Create(ctx context.Context, link inout.CreateLinkRequest)
 	return err
 }
 
-func (db NavigationDB) UpdateNavigationWithId(ctx context.Context, id int, link inout.UpdateLinkRequest) error {
+func UpdateNavigationWithId(ctx context.Context, id int, link inout.UpdateLinkRequest) error {
 	query := "UPDATE " + NavigationTableName +
 		" SET title = ?, url = ?, icon = ?, category = ?, description = ? WHERE id = ?"
-	_, err := db.ExecContext(ctx,
+	_, err := DB.ExecContext(ctx,
 		query,
 		link.Title, link.URL, link.Icon, link.Category, link.Description, id)
 	return err
 }
 
-func (db NavigationDB) DeleteNavigationWithId(ctx context.Context, id int) error {
+func DeleteNavigationWithId(ctx context.Context, id int) error {
 	query := "DELETE FROM " + NavigationTableName + " WHERE id = ?"
-	_, err := db.ExecContext(ctx, query, id)
+	_, err := DB.ExecContext(ctx, query, id)
 	return err
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tiamxu/cactus/inout"
-	"github.com/tiamxu/cactus/logic/repo"
 
 	"github.com/tiamxu/cactus/logic/service"
 )
@@ -17,9 +16,8 @@ type NavigationHandler struct {
 }
 
 func NewNavigationHandler() *NavigationHandler {
-	db := repo.NewNavigationDB()
 	return &NavigationHandler{
-		service: service.NewNavigationService(db),
+		service: service.NewNavigationService(),
 	}
 }
 
@@ -32,10 +30,12 @@ func (h *NavigationHandler) List(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(pageSizeReq)
 	data, err := h.service.List(ctx, pageNo, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, RespError(c, err, "error"))
+
 		return
 	}
-	Resp.Succ(c, data)
+	c.JSON(http.StatusOK, RespSuccess(c, data))
+
 }
 
 func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
@@ -43,17 +43,18 @@ func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, RespError(c, err, "invalid id"))
 		return
 	}
 
 	link, err := h.service.GetLinkByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "link not found"})
+		c.JSON(http.StatusNotFound, RespError(c, err, "link not found"))
+
 		return
 	}
 
-	Resp.Succ(c, link)
+	c.JSON(http.StatusOK, RespSuccess(c, link))
 }
 
 func (h *NavigationHandler) Add(c *gin.Context) {
@@ -71,7 +72,8 @@ func (h *NavigationHandler) Add(c *gin.Context) {
 		return
 	}
 
-	Resp.Succ(c, "")
+	c.JSON(http.StatusOK, RespSuccess(c, ""))
+
 }
 
 func (h *NavigationHandler) Update(c *gin.Context) {

@@ -21,6 +21,7 @@ func InitRoutes(r *gin.Engine) {
 	permissionHandler := api.NewPermissionsHandler()
 	projectHandler := api.NewProjectHandler()
 	linkHandler := api.NewNavigationHandler()
+	envHandler := api.NewEnvironmentHandler()
 
 	// ================== 开放路由（无需鉴权） ==================
 	auth := r.Group("/auth")
@@ -96,6 +97,14 @@ func InitRoutes(r *gin.Engine) {
 			link.POST("", linkHandler.Add)          // 新增链接
 			link.PUT("/:id", linkHandler.Update)    // 更新链接
 			link.DELETE("/:id", linkHandler.Delete) // 删除链接
+		}
+		env := api.Group("/environments")
+		{
+			env.GET("", envHandler.List)
+			env.POST("", envHandler.Create)
+			env.GET("/:id", envHandler.Get)
+			env.PUT("/:id", envHandler.Update)
+			env.DELETE("/:id", envHandler.Delete)
 		}
 	}
 }

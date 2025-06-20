@@ -87,3 +87,17 @@ CREATE TABLE IF NOT EXISTS navigations (
     -- 记录最后更新时间，自动更新为记录修改时的时间戳
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间' 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='快捷导航链接表';
+
+
+
+CREATE TABLE `environments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '环境名称',
+  `code` varchar(20) NOT NULL DEFAULT '' COMMENT '环境代码',
+  `description` varchar(255) DEFAULT '' COMMENT '环境描述',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态(0-禁用,1-启用)',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='环境信息表';

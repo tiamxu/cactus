@@ -8,7 +8,6 @@ import (
 	"github.com/tiamxu/cactus/inout"
 	"github.com/tiamxu/cactus/logic/service"
 	"github.com/tiamxu/cactus/pkg/utils"
-	"github.com/tiamxu/cactus/types"
 )
 
 type AuthHandler struct {
@@ -35,29 +34,24 @@ func (h *AuthHandler) Captcha(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var params inout.LoginReq
 	if err := c.Bind(&params); err != nil {
-		Resp.Err(c, 400, "请求参数错误")
+		c.JSON(http.StatusBadRequest, RespError(c, err, "请求参数错误"))
 		return
 	}
 	session := sessions.Default(c)
 	if params.Captcha != session.Get("captch") {
-		Resp.Err(c, 400, "验证码不正确")
+		c.JSON(http.StatusBadRequest, RespError(c, nil, "验证码不正确"))
 		return
 	}
 
 	resp, err := h.authService.Authenticate(params.Username, params.Password)
 	if err != nil {
 		Resp.Err(c, 401, err.Error())
+		c.JSON(401, RespError(c, err, "认证失败"))
+
 		return
 	}
-	// token, err := utils.GenerateToken(user.ID)
-	// if err != nil {
-	// 	Resp.Err(c, 500, "生成 Token 失败")
-	// 	return
-	// }
-	// Resp.Succ(c, inout.LoginRes{
-	// 	AccessToken: utils.GenerateToken(user.ID),
-	// })
-	c.JSON(http.StatusOK, types.RespSuccess(c, resp))
+
+	c.JSON(http.StatusOK, RespSuccess(c, resp))
 
 }
 
@@ -65,17 +59,19 @@ func (h *AuthHandler) Password(c *gin.Context) {
 	var req inout.AuthPwReq
 	err := c.Bind(&req)
 	if err != nil {
-		Resp.Err(c, 20001, err.Error())
+		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
 		return
 	}
 	uid, _ := c.Get("uid")
 	if err := h.authService.ChangePassword(uid.(int), req.OldPassword, req.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, RespError(c, err, "更新密码错误"))
+
 		return
 	}
-
-	Resp.Succ(c, true)
+	c.JSON(http.StatusOK, RespSuccess(c, true))
 }
+
 func (h *AuthHandler) Logout(c *gin.Context) {
-	Resp.Succ(c, true)
+	c.JSON(http.StatusOK, RespSuccess(c, true))
+
 }
