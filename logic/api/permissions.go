@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -76,14 +77,15 @@ func (p *PermissionsHandler) Delete(c *gin.Context) {
 
 func (p *PermissionsHandler) PatchPermission(c *gin.Context) {
 	var params types.PatchPermissionReq
-	err := c.BindJSON(&params)
+	err := c.ShouldBindJSON(&params)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, RespError(c, err, ""))
+		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
 		return
 	}
+	fmt.Println("params:", params.Show)
 	err = p.permissionsService.PatchPermission(params)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, RespError(c, err, ""))
+		c.JSON(http.StatusBadRequest, RespError(c, err, "更新权限错误"))
 		return
 	}
 	c.JSON(http.StatusOK, RespSuccess(c, ""))

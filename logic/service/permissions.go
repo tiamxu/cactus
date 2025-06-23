@@ -106,7 +106,7 @@ func (p *PermissionsService) PatchPermission(params types.PatchPermissionReq) er
 	}
 	err := repo.UpdatePermissionByWhere(perm)
 	if err != nil {
-		return errors.New("更新权限信息失败")
+		return err
 	}
 	return nil
 }

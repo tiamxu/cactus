@@ -17,9 +17,9 @@ func NewNavigationService() *NavigationService {
 	return &NavigationService{}
 }
 
-func (s *NavigationService) List(ctx context.Context, pageNo, pageSize int) (*types.DataListResp, error) {
+func (s *NavigationService) List(ctx context.Context, req *types.NavigationListReq) (*types.DataListResp, error) {
 
-	links, total, err := repo.GetAllLinks(ctx, pageNo, pageSize)
+	links, total, err := repo.GetAllLinks(ctx, req.PageNo, req.PageSize)
 	if err != nil {
 		return nil, errors.New("查询导航链接信息失败")
 	}

@@ -24,11 +24,17 @@ func NewNavigationHandler() *NavigationHandler {
 func (h *NavigationHandler) List(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var pageNoReq = c.DefaultQuery("pageNo", "1")
-	var pageSizeReq = c.DefaultQuery("pageSize", "10")
-	pageNo, _ := strconv.Atoi(pageNoReq)
-	pageSize, _ := strconv.Atoi(pageSizeReq)
-	data, err := h.service.List(ctx, pageNo, pageSize)
+	var req types.NavigationListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
+		return
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
+
+	data, err := h.service.List(ctx, &req)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, RespError(c, err, "error"))
 

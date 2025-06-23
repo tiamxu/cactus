@@ -79,9 +79,9 @@ type PatchPermissionReq struct {
 	Icon      string `json:"icon"`
 	Layout    string `json:"layout"`
 	Component string `json:"component"`
-	Show      int    `json:"show"`
-	Enable    int    `json:"enable"`
-	KeepAlive int    `json:"keepAlive"`
+	Show      int    `form:"show" json:"show"`
+	Enable    int    `form:"enable" json:"enable"`
+	KeepAlive int    `form:"keepAlive" json:"keepAlive"`
 	Order     int    `json:"order"`
 }
 
@@ -100,4 +100,8 @@ type NavigationUpdateReq struct {
 	Icon        string `json:"icon"`
 	Category    string `json:"category"`
 	Description string `json:"description"`
+}
+
+type NavigationListReq struct {
+	BasePage
 }

@@ -6,8 +6,8 @@ import (
 )
 
 type BasePage struct {
-	PageNum  int `form:"page_num"`
-	PageSize int `form:"page_size"`
+	PageNo   int `form:"pageNo" json:"pageNo"`
+	PageSize int `form:"pageSize" json:"pageSize"`
 }
 
 // DataListResp 带有总数的Data结构

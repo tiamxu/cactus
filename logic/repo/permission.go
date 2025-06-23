@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/tiamxu/cactus/logic/model"
 )
@@ -103,36 +104,59 @@ func DeletePermissionByWhereId(permId string) error {
 }
 
 func UpdatePermissionByWhere(p model.Permission) error {
-	query := `
-        UPDATE permission
-        SET name = :name,
-            code = :code,
-            type = :type,
-            parent_id = :parent_id,
-            path = :path,
-            icon = :icon,
-            component = :component,
-            layout = :layout,
-            keep_alive = :keep_alive,
-            method = :method,
-            show = :show,
-            enable = :enable,
-            "order" = :order
-        WHERE id = :id
-    `
+	// query := `
+	//     UPDATE permission
+	//     SET name = :name,
+	//         code = :code,
+	//         type = :type,
+	//         parentId = :parentId,
+	//         path = :path,
+	//         icon = :icon,
+	//         component = :component,
+	//         layout = :layout,
+	//         keepAlive = :keepAlive,
+	//         method = :method,
+	//         'show' = :show,
+	//         enable = :enable,
+	//         'order' = :order
+	//     WHERE id = :id
+	// `
+	query := fmt.Sprintf(`
+    UPDATE permission
+    SET name = :name,
+        code = :code,
+        type = :type,
+        parentId = :parentId,
+        path = :path,
+        icon = :icon,
+        component = :component,
+        layout = :layout,
+        keepAlive = :keepAlive,
+        method = :method,
+        %s = :show,
+        enable = :enable,
+        %s = :order
+    WHERE id = :id
+`, "`show`", "`order`")
 
+	var parentIdValue interface{}
+	if p.ParentId != nil {
+		parentIdValue = *p.ParentId
+	} else {
+		parentIdValue = nil
+	}
 	args := map[string]interface{}{
 		"id":        p.ID,
 		"name":      p.Name,
 		"code":      p.Code,
 		"type":      p.Type,
-		"parentId":  p.ParentId,
+		"parentId":  parentIdValue,
 		"path":      p.Path,
 		"icon":      p.Icon,
 		"component": p.Component,
 		"layout":    p.Layout,
 		"keepAlive": p.KeepAlive,
-		"method":    p.Method, // 修正了原来的错误
+		"method":    p.Method,
 		"show":      p.Show,
 		"enable":    p.Enable,
 		"order":     p.Order,
