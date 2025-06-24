@@ -99,10 +99,10 @@ func (p *PermissionsService) PatchPermission(params types.PatchPermissionReq) er
 		Component: params.Component,
 		Layout:    params.Layout,
 		KeepAlive: params.KeepAlive,
-		Method:    params.Component,
-		Show:      params.Show,
-		Enable:    params.Enable,
-		Order:     params.Order,
+		// Method:    params.Component,
+		Show:   params.Show,
+		Enable: params.Enable,
+		Order:  params.Order,
 	}
 	err := repo.UpdatePermissionByWhere(perm)
 	if err != nil {
