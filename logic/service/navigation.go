@@ -59,6 +59,7 @@ func (s *NavigationService) Update(ctx context.Context, id int, req *types.Navig
 	nav.Icon = req.Icon
 	nav.Description = req.Description
 	nav.Category = req.Category
+	nav.URL = req.URL
 	nav.Status = *req.Status
 
 	return repo.UpdateNavigationWithId(ctx, id, nav)

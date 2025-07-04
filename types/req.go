@@ -95,11 +95,11 @@ type NavigationCreateReq struct {
 }
 
 type NavigationUpdateReq struct {
-	Title       string `json:"title"`
-	URL         string `json:"url" binding:"omitempty,url"`
-	Icon        string `json:"icon"`
-	Category    string `json:"category"`
-	Description string `json:"description"`
+	Title       string `form:"title" json:"title"`
+	URL         string `form:"url" json:"url" binding:"omitempty,url"`
+	Icon        string `form:"icon" json:"icon"`
+	Category    string `form:"category" json:"category"`
+	Description string `form:"description" json:"description"`
 	Status      *int   `form:"status" json:"status"`
 }
 
