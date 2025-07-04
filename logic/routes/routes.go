@@ -3,6 +3,7 @@ package routes
 import (
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/tiamxu/cactus/logic/api"
@@ -14,6 +15,14 @@ import (
 func InitRoutes(r *gin.Engine) {
 	r.Use(middleware.TimeoutMiddleware(30 * time.Second))
 	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte("captch"))))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // 允许的前端地址
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	authHandler := api.NewAuthHandler()
 	userHandler := api.NewUserHandler()
@@ -31,7 +40,10 @@ func InitRoutes(r *gin.Engine) {
 		auth.POST("/login", authHandler.Login)    // 登录
 		auth.GET("/captcha", authHandler.Captcha) // 验证码
 	}
-
+	public := r.Group("/public")
+	{
+		public.GET("/links", linkHandler.PublicList)
+	}
 	// ================== 受保护路由（需 JWT 鉴权） ==================
 	api := r.Group("")
 	api.Use(middleware.JWTAuthMiddleware()) // 应用 JWT 中间件
@@ -93,16 +105,17 @@ func InitRoutes(r *gin.Engine) {
 		// 链接管理
 		link := api.Group("/links")
 		{
-			link.GET("", linkHandler.List)          // 链接列表
-			link.POST("", linkHandler.Add)          // 新增链接
-			link.PUT("/:id", linkHandler.Update)    // 更新链接
-			link.DELETE("/:id", linkHandler.Delete) // 删除链接
+			link.GET("", linkHandler.List)
+			// link.GET("/:id", linkHandler.Get)
+			link.POST("", linkHandler.Add)
+			link.PUT("/:id", linkHandler.Update)
+			link.DELETE("/:id", linkHandler.Delete)
 		}
 		env := api.Group("/environments")
 		{
 			env.GET("", envHandler.List)
-			env.POST("", envHandler.Create)
-			env.GET("/:id", envHandler.Get)
+			env.POST("", envHandler.Add)
+			// env.GET("/:id", envHandler.Get)
 			env.PUT("/:id", envHandler.Update)
 			env.DELETE("/:id", envHandler.Delete)
 		}

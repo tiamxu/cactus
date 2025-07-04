@@ -18,8 +18,12 @@ func NewNavigationService() *NavigationService {
 }
 
 func (s *NavigationService) List(ctx context.Context, req *types.NavigationListReq) (*types.DataListResp, error) {
-
-	links, total, err := repo.GetAllLinks(ctx, req.PageNo, req.PageSize)
+	var status *int
+	if req.Status != nil {
+		s := *req.Status
+		status = &s
+	}
+	links, total, err := repo.ListNavigationLinks(ctx, req.Title, req.Category, status, req.PageNo, req.PageSize)
 	if err != nil {
 		return nil, errors.New("查询导航链接信息失败")
 	}
@@ -30,7 +34,7 @@ func (s *NavigationService) List(ctx context.Context, req *types.NavigationListR
 	}, nil
 }
 
-func (s *NavigationService) GetLinkByID(ctx context.Context, id int) (*model.NavigationLink, error) {
+func (s *NavigationService) Get(ctx context.Context, id int) (*model.NavigationLink, error) {
 	return repo.GetLinkByID(ctx, id)
 }
 
@@ -55,10 +59,17 @@ func (s *NavigationService) Update(ctx context.Context, id int, req *types.Navig
 	nav.Icon = req.Icon
 	nav.Description = req.Description
 	nav.Category = req.Category
+	nav.Status = *req.Status
 
 	return repo.UpdateNavigationWithId(ctx, id, nav)
 }
 
 func (s *NavigationService) Delete(ctx context.Context, id int) error {
 	return repo.DeleteNavigationWithId(ctx, id)
+}
+
+func (s *NavigationService) ListPublicNavigationList(page, pageSize int) ([]*model.NavigationLink, int64, error) {
+	ctx := context.Background()
+
+	return repo.GetAllLinks(ctx, page, pageSize)
 }

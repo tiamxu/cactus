@@ -18,7 +18,7 @@ func NewEnvironmentService() *EnvironmentService {
 }
 
 // CreateEnvironment 创建环境
-func (s *EnvironmentService) Create(ctx context.Context, req *types.EnvironmentCreateReq) (*model.Environment, error) {
+func (s *EnvironmentService) Add(ctx context.Context, req *types.EnvironmentCreateReq) (*model.Environment, error) {
 	// 验证参数
 	if strings.TrimSpace(req.Name) == "" {
 		return nil, errors.New("环境名称不能为空")
@@ -58,7 +58,7 @@ func (s *EnvironmentService) List(ctx context.Context, req *types.EnvironmentLis
 		status = &s
 	}
 
-	envs, total, err := repo.ListEnvironments(ctx, req.Name, status, req.Page, req.PageSize)
+	envs, total, err := repo.ListEnvironments(ctx, req.Name, req.Code, status, req.PageNo, req.PageSize)
 	if err != nil {
 		return nil, fmt.Errorf("查询环境列表失败: %v", err)
 	}

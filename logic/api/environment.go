@@ -19,7 +19,7 @@ func NewEnvironmentHandler() *EnvironmentHandler {
 	}
 }
 
-func (h *EnvironmentHandler) Create(c *gin.Context) {
+func (h *EnvironmentHandler) Add(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var req types.EnvironmentCreateReq
@@ -27,7 +27,7 @@ func (h *EnvironmentHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
 		return
 	}
-	env, err := h.service.Create(ctx, &req)
+	env, err := h.service.Add(ctx, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, RespError(c, err, ""))
 		return
@@ -62,8 +62,8 @@ func (h *EnvironmentHandler) List(c *gin.Context) {
 		return
 	}
 	// 设置默认值
-	if req.Page <= 0 {
-		req.Page = 1
+	if req.PageNo <= 0 {
+		req.PageNo = 1
 	}
 	if req.PageSize <= 0 {
 		req.PageSize = 10

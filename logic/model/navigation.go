@@ -10,6 +10,7 @@ type NavigationLink struct {
 	URL         string    `db:"url" json:"url"`
 	Icon        string    `db:"icon" json:"icon"`
 	Category    string    `db:"category" json:"category"`
+	Status      int       `db:"status" json:"status"`
 	Description string    `db:"description" json:"description"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`

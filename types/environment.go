@@ -15,8 +15,8 @@ type EnvironmentUpdateReq struct {
 
 // ListEnvironmentRequest 环境列表请求
 type EnvironmentListReq struct {
-	Name     string `form:"name"`     // 环境名称(模糊查询)
-	Status   *int   `form:"status"`   // 状态 (0-禁用, 1-启用)
-	Page     int    `form:"page"`     // 页码
-	PageSize int    `form:"pageSize"` // 每页数量
+	Name   string `form:"name"` // 环境名称(模糊查询)
+	Code   string `form:"code"`
+	Status *int   `form:"status"` // 状态 (0-禁用, 1-启用)
+	BasePage
 }

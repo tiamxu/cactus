@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS navigations (
     -- 示例: '开发工具'、'搜索引擎'、'社交媒体'
     category VARCHAR(50) COMMENT '链接分类',
     -- 链接的详细描述信息，用于鼠标悬停提示或辅助说明
+    `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态(0-禁用,1-启用)',
     description TEXT COMMENT '链接描述信息',
     -- 记录创建时间，自动设置为记录插入时的时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

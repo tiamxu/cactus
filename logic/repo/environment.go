@@ -44,7 +44,7 @@ func GetEnvironmentByID(ctx context.Context, id int) (*model.Environment, error)
 }
 
 // 获取环境列表
-func ListEnvironments(ctx context.Context, name string, status *int, page, pageSize int) ([]*model.Environment, int64, error) {
+func ListEnvironments(ctx context.Context, name string, code string, status *int, page, pageSize int) ([]*model.Environment, int64, error) {
 	var envs []*model.Environment
 	var total int64
 
@@ -55,6 +55,10 @@ func ListEnvironments(ctx context.Context, name string, status *int, page, pageS
 	if name != "" {
 		where = append(where, "name LIKE ?")
 		args = append(args, "%"+name+"%")
+	}
+	if code != "" {
+		where = append(where, "code = ?")
+		args = append(args, code)
 	}
 	if status != nil {
 		where = append(where, "status = ?")

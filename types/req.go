@@ -100,8 +100,12 @@ type NavigationUpdateReq struct {
 	Icon        string `json:"icon"`
 	Category    string `json:"category"`
 	Description string `json:"description"`
+	Status      *int   `form:"status" json:"status"`
 }
 
 type NavigationListReq struct {
+	Title    string `form:"title" json:"title"`
+	Category string `form:"category" json:"category"`
+	Status   *int   `form:"status" json:"status"`
 	BasePage
 }

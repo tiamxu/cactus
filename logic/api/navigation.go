@@ -21,48 +21,6 @@ func NewNavigationHandler() *NavigationHandler {
 	}
 }
 
-func (h *NavigationHandler) List(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	var req types.NavigationListReq
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
-		return
-	}
-	if req.PageSize == 0 {
-		req.PageSize = 10
-	}
-
-	data, err := h.service.List(ctx, &req)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, RespError(c, err, "error"))
-
-		return
-	}
-	c.JSON(http.StatusOK, RespSuccess(c, data))
-
-}
-
-func (h *NavigationHandler) GetLinkByID(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, RespError(c, err, "invalid id"))
-		return
-	}
-
-	link, err := h.service.GetLinkByID(ctx, id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, RespError(c, err, "link not found"))
-
-		return
-	}
-
-	c.JSON(http.StatusOK, RespSuccess(c, link))
-}
-
 func (h *NavigationHandler) Add(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -81,6 +39,47 @@ func (h *NavigationHandler) Add(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, RespSuccess(c, ""))
+
+}
+
+func (h *NavigationHandler) Get(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, RespError(c, err, "invalid id"))
+		return
+	}
+
+	link, err := h.service.Get(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, RespError(c, err, "link not found"))
+
+		return
+	}
+
+	c.JSON(http.StatusOK, RespSuccess(c, link))
+}
+
+func (h *NavigationHandler) List(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var req types.NavigationListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
+		return
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
+	data, err := h.service.List(ctx, &req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, RespError(c, err, "error"))
+
+		return
+	}
+	c.JSON(http.StatusOK, RespSuccess(c, data))
 
 }
 
@@ -128,4 +127,29 @@ func (h *NavigationHandler) Delete(c *gin.Context) {
 
 	c.JSON(http.StatusOK, RespSuccess(c, ""))
 
+}
+
+func (h *NavigationHandler) PublicList(c *gin.Context) {
+	var req types.NavigationListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, RespError(c, err, "参数错误"))
+		return
+	}
+	if req.PageNo < 1 {
+		req.PageNo = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
+
+	data, total, err := h.service.ListPublicNavigationList(req.PageNo, req.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, RespError(c, err, "查询导航链接信息失败"))
+		return
+	}
+
+	c.JSON(http.StatusOK, RespSuccess(c, map[string]interface{}{
+		"total":    total,
+		"pageData": data,
+	}))
 }
